@@ -85,8 +85,8 @@ foreach ($user in $aadUsers){
 
 # UPDATE UPN SUFFIX
 
-$oldSuffix = "api.local"
-$newSuffix = "winglets.com"
+$oldSuffix = "domain.local"
+$newSuffix = "domain.com"
 
 $aadUsers = Import-Csv .\AzureADUsers-Updated.csv | where SamAccountName -ne ""
 
