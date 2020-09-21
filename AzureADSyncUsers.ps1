@@ -9,7 +9,7 @@ Get-AzureADUser -All $true | select DisplayName,SamAccountName,UserPrincipalName
 
 
 
-#  UPDATE USER LIST WITH ON PREMISE INFORMATION: SAMACCOUNTNAME
+#  UPDATE USER LIST WITH ON PREMISE INFORMATION: SAMACCOUNTNAME, OBJECTID
 
 # Require ActiveDirectory module
 $aadUsers = Import-Csv .\AzureADUsers.csv
