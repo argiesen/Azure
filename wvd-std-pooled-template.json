@@ -8,6 +8,12 @@
             "metadata": {
                 "description": "The location where the resources will be deployed"
             }
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "fileShareName": {
+            "type": "string"
         }
     },
     "functions": [],
@@ -23,9 +29,13 @@
                     "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-file-share/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
-                "parametersLink": {
-                    "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-file-share/azuredeploy.parameters.json",
-                    "contentVersion": "1.0.0.0"
+                "parameters": {
+                    "storageAccountName": {
+                        "value": "[parameters('storageAccountName')]"
+                    },
+                    "fileShareName": {
+                        "value": "[parameters('fileShareName')]"
+                    }
                 }
             }
         },
