@@ -23,7 +23,7 @@
                     "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-file-share/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
-                "parameters": {
+                "parametersLink": {
                     "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-file-share/azuredeploy.parameters.json",
                     "contentVersion": "1.0.0.0"
                 }
