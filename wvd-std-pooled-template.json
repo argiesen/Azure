@@ -70,12 +70,12 @@
             }
         },
         {
-            "name": "wvd-spoke-vnet",
+            "name": "vnet-net02-prd-westus2",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-11-01",
             "location": "[resourceGroup().location]",
             "tags": {
-                "displayName": "wvd-spoke-vnet"
+                "displayName": "vnet-net02-prd-westus2"
             },
             "properties": {
                 "addressSpace": {
