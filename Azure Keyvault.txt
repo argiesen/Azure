@@ -1,0 +1,61 @@
+$templateFile = "template.json"
+$parameterFile="azweb01.json"
+New-AzResourceGroupDeployment `
+  -Name azweb01 `
+  -ResourceGroupName rg-vm01-test-usw2 `
+  -TemplateFile $templateFile `
+  -TemplateParameterFile $parameterFile `
+  -AsJob
+
+$templateFile = "template.json"
+$parameterFile="azweb02.json"
+New-AzResourceGroupDeployment `
+  -Name azweb02 `
+  -ResourceGroupName rg-vm01-test-usw2 `
+  -TemplateFile $templateFile `
+  -TemplateParameterFile $parameterFile `
+  -AsJob
+
+
+#Create vault
+New-AzKeyVault -Name vault01-test-usw2 -ResourceGroupName rg-vm01-test-usw2 -Location westus2
+#Enable value for template deployment
+Set-AzKeyVaultAccessPolicy -VaultName vault01-test-usw2 -EnabledForTemplateDeployment
+#Allow user to retrieve secrets from the key vault
+Set-AzKeyVaultAccessPolicy -VaultName vault01-test-usw2 -UserPrincipalName 'agiesen_compunet.biz#EXT#@piratearg.onmicrosoft.com' -PermissionsToSecrets get,set,delete
+#Convert password to secure string
+$secretvalue = ConvertTo-SecureString 'azCnet2020!@#' -AsPlainText -Force
+#Set password into key vault
+$secret = Set-AzKeyVaultSecret -VaultName vault01-test-usw2 -Name 'LocalAdminPassword' -SecretValue $secretvalue
+
+#retrieve cleartext password from vault for verification
+(Get-AzKeyVaultSecret -vaultName vault01-test-usw2 -name 'LocalAdminPassword').SecretValueText
+
+#Get Resource ID for reference in parameters file
+Get-AzKeyVault | fl VaultName,ResourceID
+/subscriptions/9750ea4e-1411-4074-a4c6-daa71a401443/resourceGroups/rg-vm01-test-usw2/providers/Microsoft.KeyVault/vaults/vault01-test-usw21
+
+#Pass reference in parameters value
+		"adminPassword": {
+            "reference": {
+				"keyVault": {
+				"id": "/subscriptions/9750ea4e-1411-4074-a4c6-daa71a401443/resourceGroups/rg-vm01-test-usw2/providers/Microsoft.KeyVault/vaults/vault01-test-usw2"
+				},
+				"secretName": "LocalAdminPassword"
+			}
+        },
+
+
+
+
+$Region = "westus2"
+
+#To deploy resource group use New-AzDeployment, deploying to existing resource group uses New-AzResourceGroupDeployment
+$paramFiles = Get-ChildItem -Filter *parameters.json
+
+### Add variable for region location
+foreach ($paramFile in $paramFiles){New-AzDeployment -TemplateFile .\rg-template.json -TemplateParameterFile $paramFile.Name -Location $Region}
+
+$paramFiles = Get-ChildItem -Filter *parameters.json
+foreach ($paramFile in $paramFiles){New-AzResourceGroupDeployment -ResourceGroupName rg-net01-prd-westus2 -TemplateFile .\vnet-template.json -TemplateParameterFile $paramFile.Name}
+

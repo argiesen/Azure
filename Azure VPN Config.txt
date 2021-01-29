@@ -1,0 +1,64 @@
+$resourceGroupName = "rg-net01-prd-westus2"
+
+$parameterObject = @{
+	vnetName 			= "vnet-net02-prd-westus2"
+	vnetAddressPrefix 	= "10.253.0.0/16"
+	subnet1Prefix 		= "10.253.0.0/28"
+	subnet1Name			= "GatewaySubnet"
+	subnet2Prefix 		= "10.253.10.0/24"
+	subnet2Name			= "snet-server02-prd-westus2"
+	location 			= "westus2"
+}
+
+$templateUri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
+New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateUri $templateUri -TemplateParameterObject $parameterObject
+
+#while ((Get-AzVirtualNetwork -Name $parameterObject.existingVNETName) -eq $null){Start-Sleep -Seconds 5}
+
+$parameterObject = @{
+	existingVNETName 		= "vnet-net02-prd-westus2"
+	newSubnetName 			= "snet-dmz02-prd-westus2"
+	newSubnetAddressPrefix 	= "10.253.20.0/24"
+	location 				= "westus2"
+}
+
+$templateUri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-subnet-add-vnet-existing/azuredeploy.json"
+New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateUri $templateUri -TemplateParameterObject $parameterObject
+
+
+
+
+
+$RG1           = "rg-net01-prd-westus2"
+$Location1     = "West US 2"
+$VNetName1     = "vnet-net01-prd-westus2"
+$GWName1       = "VNet1GW"
+$GW1IPName1    = "VNet1GWIP1"
+$GW1IPconf1    = "gw1ipconf1"
+$S2SConnection = "AzureToPremise"
+$LNGName1      = "PremiseSiteName"
+$LNGPrefix1    = "10.61.0.0/16"
+$LNGPrefix2    = "10.62.0.0/16"
+$LNGIP1        = "131.107.72.22"
+$SharedKey     = 'AzureA1b2C3'
+
+
+#Create VPN GW
+$gw1pip1    = New-AzPublicIpAddress -Name $GW1IPName1 -ResourceGroupName $RG1 -Location $Location1 -AllocationMethod Dynamic
+$vnet1      = Get-AzVirtualNetwork -Name $VNetName1 -ResourceGroupName $RG1
+$subnet1    = Get-AzVirtualNetworkSubnetConfig -Name "GatewaySubnet" -VirtualNetwork $vnet1
+$gw1ipconf1 = New-AzVirtualNetworkGatewayIpConfig -Name $GW1IPconf1 -Subnet $subnet1 -PublicIpAddress $gw1pip1
+
+New-AzVirtualNetworkGateway -Name $GWName1 -ResourceGroupName $RG1 -Location $Location1 -IpConfigurations $gw1ipconf1 -GatewayType Vpn -VpnType RouteBased -GatewaySku HighPerformance
+
+New-AzLocalNetworkGateway -Name $LNGName1 -ResourceGroupName $RG1 -Location $Location1 -GatewayIpAddress $LNGIP1 -AddressPrefix $LNGPrefix1,$LNGPrefix2
+
+
+#Create S2S Connection
+$ipsecpolicy6 = New-AzIpsecPolicy -IkeEncryption AES256 -IkeIntegrity SHA384 -DhGroup DHGroup24 -IpsecEncryption AES256 -IpsecIntegrity SHA256 -PfsGroup None -SALifeTimeSeconds 14400 -SADataSizeKilobytes 102400000
+
+$vnet1gw = Get-AzVirtualNetworkGateway -Name $GWName1  -ResourceGroupName $RG1
+$lng1 = Get-AzLocalNetworkGateway  -Name $LNGName1 -ResourceGroupName $RG1
+
+New-AzVirtualNetworkGatewayConnection -Name $S2SConnection -ResourceGroupName $RG1 -VirtualNetworkGateway1 $vnet1gw -LocalNetworkGateway2 $lng1 -Location $Location1 -ConnectionType IPsec -UsePolicyBasedTrafficSelectors $True -IpsecPolicies $ipsecpolicy6 -SharedKey $SharedKey
+
