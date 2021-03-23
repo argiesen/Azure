@@ -4,7 +4,7 @@
 
 # Export Azure AD only groups to CSV for further manipulation against on premise AD
 # Requires AzureAD module, use Connect-AzureAD
-$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -join ';')}}
+$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
 $azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
 Get-AzureADGroup -All $true | select DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddreses,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,DirSyncEnabled,Notes | Export-Csv -NoTypeInformation .\AzureADGroups.csv
 
