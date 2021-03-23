@@ -4,12 +4,15 @@
 
 # Export Azure AD only users to CSV for further manipulation against on premise AD
 # Requires AzureAD module, use Connect-AzureAD
+$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -join ';')}}
 $azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
-Get-AzureADUser -All $true | select DisplayName,SamAccountName,UserPrincipalName,Mail,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,UsageLocation,DirSyncEnabled,Notes | Export-Csv -NoTypeInformation .\AzureADUsers.csv
+Get-AzureADUser -All $true | select DisplayName,SamAccountName,UserPrincipalName,Mail,$proxyAddreses,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,UsageLocation,DirSyncEnabled,Notes | Export-Csv -NoTypeInformation .\AzureADUsers.csv
 
 
 
+################# STEP 2 ###########################
 #  UPDATE USER LIST WITH ON PREMISE INFORMATION: SAMACCOUNTNAME, OBJECTID
+####################################################
 
 # Require ActiveDirectory module
 $aadUsers = Import-Csv .\AzureADUsers.csv
@@ -43,7 +46,7 @@ foreach ($user in $aadUsers){
 		Write-Host "DisplayName: $($user.DisplayName)"
 	}
 	
-	#Update User properties and calculate ImmutableId
+	#Update user properties and calculate ImmutableId
 	if ($userOut){
 		$user.SamAccountName = $userOut.SamAccountName
 		$user.AdObjectGUID = $userOut.ObjectGUID
@@ -58,7 +61,6 @@ foreach ($user in $aadUsers){
 # Assumes you might be switching machines between doing on premise and Azure AD, if not, no need to export/import CSV
 # Export to second CSV to preserve original CSV
 $aadUsers | Export-Csv -NoTypeInformation .\AzureADUsers-Updated.csv
-
 
 
 
@@ -82,8 +84,9 @@ foreach ($user in $aadUsers){
 	Add-Content AzureLog.txt ""
 }
 
-
-# UPDATE UPN SUFFIX
+############# STEP 4 ###############
+#   UPDATE ON PREMISE UPN SUFFIX   #
+####################################
 
 $oldSuffix = "domain.local"
 $newSuffix = "domain.com"
@@ -94,4 +97,3 @@ foreach ($user in $aadUsers){
 	$newUpn = (Get-ADUser $user.SamAccountName).UserPrincipalName.Replace($oldSuffix,$newSuffix)
 	Set-ADUser $user.SamAccountName -UserPrincipalName $newUpn
 }
-
