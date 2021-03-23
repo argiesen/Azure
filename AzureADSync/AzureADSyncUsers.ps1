@@ -4,7 +4,7 @@
 
 # Export Azure AD only users to CSV for further manipulation against on premise AD
 # Requires AzureAD module, use Connect-AzureAD
-$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
+$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:|^SIP:') -join ';'}}
 $azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
 Get-AzureADUser -All $true | select DisplayName,SamAccountName,UserPrincipalName,Mail,$proxyAddreses,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,UsageLocation,DirSyncEnabled,Notes | Export-Csv -NoTypeInformation .\AzureADUsers.csv
 
