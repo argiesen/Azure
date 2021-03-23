@@ -49,7 +49,7 @@ foreach ($group in $aadGroups){
 
 # Assumes you might be switching machines between doing on premise and Azure AD, if not, no need to export/import CSV
 # Export to second CSV to preserve original CSV
-$aadGroups | Export-Csv -NoTypeInformation .\AzureADGroups-Updated.csv
+$aadGroups | Export-Csv -NoTypeInformation .\AzureADGroups.csv
 
 
 
@@ -59,7 +59,7 @@ $aadGroups | Export-Csv -NoTypeInformation .\AzureADGroups-Updated.csv
 
 
 # Import to update Azure AD with ImmutableId
-$aadGroups = Import-Csv .\AzureADGroups-Updated.csv | where ImmutableId -ne ""
+$aadGroups = Import-Csv .\AzureADGroups.csv | where ImmutableId -ne ""
 
 # Iterate through groups to update ImmutableId
 # Requires AzureAD module

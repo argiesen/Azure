@@ -60,7 +60,7 @@ foreach ($user in $aadUsers){
 
 # Assumes you might be switching machines between doing on premise and Azure AD, if not, no need to export/import CSV
 # Export to second CSV to preserve original CSV
-$aadUsers | Export-Csv -NoTypeInformation .\AzureADUsers-Updated.csv
+$aadUsers | Export-Csv -NoTypeInformation .\AzureADUsers.csv
 
 
 
@@ -70,7 +70,7 @@ $aadUsers | Export-Csv -NoTypeInformation .\AzureADUsers-Updated.csv
 
 
 # Import to update Azure AD with ImmutableId
-$aadUsers = Import-Csv .\AzureADUsers-Updated.csv | where ImmutableId -ne ""
+$aadUsers = Import-Csv .\AzureADUsers.csv | where ImmutableId -ne ""
 
 # Iterate through users to update ImmutableId
 # Requires AzureAD module
@@ -91,7 +91,7 @@ foreach ($user in $aadUsers){
 $oldSuffix = "domain.local"
 $newSuffix = "domain.com"
 
-$aadUsers = Import-Csv .\AzureADUsers-Updated.csv | where SamAccountName -ne ""
+$aadUsers = Import-Csv .\AzureADUsers.csv | where SamAccountName -ne ""
 
 foreach ($user in $aadUsers){
 	$newUpn = (Get-ADUser $user.SamAccountName).UserPrincipalName.Replace($oldSuffix,$newSuffix)
