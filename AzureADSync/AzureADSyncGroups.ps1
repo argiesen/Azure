@@ -1,5 +1,5 @@
 ################# STEP 1 ###########################
-#     COLLECT CLOUD ONLY GROUPS FROM AZURE AD      #
+#        COLLECT CLOUD GROUPS FROM AZURE AD        #
 ####################################################
 
 # Export Azure AD only groups to CSV for further manipulation against on premise AD

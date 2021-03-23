@@ -1,5 +1,5 @@
 ################# STEP 1 ###########################
-#  COLLECT CLOUD ONLY USER ACCOUNTS FROM AZURE AD  #
+#    COLLECT CLOUD USER ACCOUNTS FROM AZURE AD     #
 ####################################################
 
 # Export Azure AD only users to CSV for further manipulation against on premise AD
