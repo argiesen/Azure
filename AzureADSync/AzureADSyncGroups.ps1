@@ -6,8 +6,13 @@
 # Requires AzureAD module, use Connect-AzureAD
 $proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
 $azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
-Get-AzureADGroup -All $true | select DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddreses,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,DirSyncEnabled,Notes | Export-Csv -NoTypeInformation .\AzureADGroups.csv
+$aadGroups = Get-AzureADGroup -All $true | select DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddreses,Members,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,DirSyncEnabled,Notes
 
+foreach ($group in $aadGroups){
+	$group.Members = (Get-AzureADGroup -ObjectId $group.azObjectId | Get-AzureADGroupMember).UserPrincipalName -join ';'
+}
+
+$aadGroups | Export-Csv -NoTypeInformation .\AzureADGroups.csv
 
 
 ################# STEP 2 ###########################
