@@ -30,13 +30,13 @@ foreach ($group in $aadGroups){
 	
 	#Match based on Mail attribute
 	$mail = $group.Mail
-	if ($groupOut -eq $null -and $group.Mail -ne "" -and $($groupOut = Get-ADGroup -Filter 'Mail -eq $mail' -Properties Mail)){
+	if ($group.Mail -ne "" -and ($groupOut = Get-ADGroup -Filter 'Mail -eq $mail' -Properties Mail)){
 		Write-Host "Mail: $($group.Mail)"
 	}
 	
 	#Last restort match based on DisplayName attribute
 	$displayName = $group.DisplayName
-	if ($groupOut -eq $null -and $($groupOut = Get-ADGroup -Filter 'Name -eq $displayName')){
+	if ($null -eq $groupOut -and ($groupOut = Get-ADGroup -Filter 'Name -eq $displayName')){
 		Write-Host "DisplayName: $($group.DisplayName)"
 	}
 	
@@ -44,7 +44,7 @@ foreach ($group in $aadGroups){
 	if ($groupOut){
 		$group.SamAccountName = $groupOut.SamAccountName
 		$group.AdObjectGUID = $groupOut.ObjectGUID
-		if ($group.AdObjectGUID -ne $null -and $group.ImmutableId -eq ""){
+		if ($null -ne $group.AdObjectGUID -and $group.ImmutableId -eq ""){
 			$group.ImmutableId = [System.Convert]::ToBase64String($($groupOut.ObjectGUID).tobytearray())
 		}
 	}else{
