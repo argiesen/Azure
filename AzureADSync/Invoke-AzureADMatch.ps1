@@ -73,9 +73,9 @@ if ($ExportAzureAD){
 	if ($IncludeUsers){
 		#Export Azure AD users to CSV for further manipulation against on premise AD
 		Write-Log "Exporting Azure AD user information to $UserCSV" -OutTo Screen
-		$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:|^SIP:') -join ';'}}
+		$proxyAddresses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:|^SIP:') -join ';'}}
 		$azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
-		$aadUsers = Get-AzureADUser -All $true | Select-Object DisplayName,SamAccountName,UserPrincipalName,Mail,$proxyAddreses,Description,GivenName,Surname,JobTitle,Department,CompanyName,StreetAddress,City,State,Country,PostalCode,TelephoneNumber,Mobile,AccountEnabled,ImmutableId,$azObjectId,AdObjectGuid,AdOU,ObjectType,UsageLocation,DirSyncEnabled,Notes
+		$aadUsers = Get-AzureADUser -All $true | Select-Object DisplayName,SamAccountName,UserPrincipalName,Mail,$proxyAddresses,Description,GivenName,Surname,JobTitle,Department,CompanyName,StreetAddress,City,State,Country,PostalCode,TelephoneNumber,Mobile,AccountEnabled,ImmutableId,$azObjectId,AdObjectGuid,AdOU,ObjectType,UsageLocation,DirSyncEnabled,Notes
 
 		#Filter out external identities
 		$aadUsers | Where-Object {$_.UserPrincipalName -notmatch "#EXT#"} | Export-Csv -NoTypeInformation $UserCSV
@@ -84,9 +84,9 @@ if ($ExportAzureAD){
 	if ($IncludeGroups){
 		#Export Azure AD groups to CSV for further manipulation against on premise AD
 		Write-Log "Exporting Azure AD group information to $GroupCSV" -OutTo Screen
-		$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
+		$proxyAddresses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
 		$azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
-		$aadGroups = Get-AzureADGroup -All $true | Select-Object DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddreses,Members,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,DirSyncEnabled,Notes
+		$aadGroups = Get-AzureADGroup -All $true | Select-Object DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddresses,Members,Description,ImmutableId,$azObjectId,AdObjectGuid,AdOU,ObjectType,DirSyncEnabled,Notes
 
 		foreach ($group in $aadGroups){
 			$group.Members = (Get-AzureADGroup -ObjectId $group.azObjectId | Get-AzureADGroupMember).UserPrincipalName -join ';'
@@ -186,6 +186,7 @@ if ($MatchActiveDirectory){
 			if ($groupOut){
 				$group.SamAccountName = $groupOut.SamAccountName
 				$group.AdObjectGUID = $groupOut.ObjectGUID
+				$group.AdOU = ($groupOut.DistinguishedName -split "^(.+?),")[2]
 				if ($null -ne $group.AdObjectGUID -and $group.ImmutableId -eq ""){
 					$group.ImmutableId = $groupOut.ObjectGUID
 				}
@@ -213,6 +214,7 @@ if ($UpdateImmutableId){
 		#Iterate through users to update ImmutableId
 		foreach ($user in $aadUsers){
 			Set-AzureADUser -ObjectId $user.AzObjectId -ImmutableId $user.ImmutableId
+
 			if ($?){
 				Write-Log "Updated ImmutableId for user: $($user.UserPrincipalName) / $($user.AzObjectId) / $($user.ImmutableId)"
 			}else{
@@ -233,12 +235,14 @@ if ($UpdateGroups){
 
 		#Iterate through groups to update ImmutableId
 		foreach ($group in $aadGroups){
-			#Set-ADGroup -Identity $group.AdObjectGuid -Replace @{'mS-DS-ConsistencyGuid'=$group.ImmutableId}
-			Set-ADGroup -Identity $group.AdObjectGuid -Add @{'proxyAddresses'=$group.ProxyAddresses}
-			if ($?){
-				Write-Log "Updated ProxyAddresses for group: $($group.DisplayName)"
-			}else{
-				Write-Log "Failed updating ProxyAddresses for group: $($group.DisplayName) : $($Error[0].Exception.Message)" -Level Error
+			foreach ($proxyAddress in ($group.ProxyAddresses -split ';')){
+				Set-ADGroup -Identity $group.AdObjectGuid -Add @{'proxyAddresses'=$proxyAddress}
+				
+				if ($?){
+					Write-Log "Added ProxyAddress for group: $($group.DisplayName) / $proxyAddress"
+				}else{
+					Write-Log "Failed adding ProxyAddresses for group: $($group.DisplayName) / $proxyAddress : $($Error[0].Exception.Message)" -Level Error
+				}
 			}
 		}
 	}
