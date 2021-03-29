@@ -136,7 +136,7 @@ if ($MatchActiveDirectory){
 			if ($userOut){
 				$user.SamAccountName = $userOut.SamAccountName
 				$user.AdObjectGUID = $userOut.ObjectGUID
-				#$user.AdOU = $userOut.DistinguishedName -split "^CN=.+,"[1]
+				$user.AdOU = ($userOut.DistinguishedName -split "^(.+?),")[2]
 				if ($null -ne $user.AdObjectGUID -and $user.ImmutableId -eq ""){
 					$user.ImmutableId = [System.Convert]::ToBase64String($($userOut.ObjectGUID).tobytearray())
 				}
