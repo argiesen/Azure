@@ -6,8 +6,8 @@ param (
 	[switch]$MatchActiveDirectory,
 	[Alias("Step3")]
 	[switch]$UpdateImmutableId,
-	#[Alias("Step4")]
-	#[switch]$UpdateGroups,
+	[Alias("Step4")]
+	[switch]$UpdateGroups,
 	[string]$UserCSV = "AzureADUsers.csv",
 	[string]$GroupCSV = "AzureADGroups.csv",
 	[bool]$IncludeUsers = $true,
@@ -219,7 +219,7 @@ if ($UpdateImmutableId){
 }
 
 #UPDATE GROUP PROXYADDRESSES IN AD
-<# if ($UpdateGroups){
+if ($UpdateGroups){
 	if ($IncludeGroups){
 		$LogPath = "AzureADMatchGroups.log"
 		Write-Log "Updating ProxyAddresses for groups"
@@ -238,4 +238,4 @@ if ($UpdateImmutableId){
 			}
 		}
 	}
-} #>
+}
