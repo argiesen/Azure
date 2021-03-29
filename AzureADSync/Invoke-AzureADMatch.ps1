@@ -125,14 +125,18 @@ if ($MatchActiveDirectory){
 
 			#Match based on Mail attribute
 			$mail = $user.Mail
-			if ($null -eq $userOut -and $user.Mail -ne "" -and $($userOut = Get-ADUser -Filter 'Mail -eq $mail' -Properties Mail)){
-				Write-Log "Mail: $($user.Mail)"
+			if ($null -eq $userOut){
+				if ($user.Mail -ne "" -and ($userOut = Get-ADUser -Filter 'Mail -eq $mail' -Properties Mail)){
+					Write-Log "MAIL: $($user.Mail)"
+				}
 			}
 
 			#Last restort match based on DisplayName attribute
 			$displayName = $user.DisplayName
-			if ($null -eq $userOut -and $($userOut = Get-ADUser -Filter 'Name -eq $displayName')){
-				Write-Log "DISPLAYNAME: $($user.DisplayName)"
+			if ($null -eq $userOut){
+				if (($userOut = Get-ADUser -Filter 'Name -eq $displayName')){
+					Write-Log "DISPLAYNAME: $($user.DisplayName)"
+				}
 			}
 
 			#Update user properties and calculate ImmutableId
