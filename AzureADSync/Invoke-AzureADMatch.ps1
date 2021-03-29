@@ -72,15 +72,18 @@ if ($ExportAzureAD){
 
 	if ($IncludeUsers){
 		#Export Azure AD users to CSV for further manipulation against on premise AD
-		Write-Log "Exporting Azure AD user information to $UserCSV"
+		Write-Log "Exporting Azure AD user information to $UserCSV" -OutTo Screen
 		$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:|^SIP:') -join ';'}}
 		$azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
-		Get-AzureADUser -All $true | Select-Object DisplayName,SamAccountName,UserPrincipalName,Mail,$proxyAddreses,Description,GivenName,Surname,JobTitle,Department,CompanyName,StreetAddress,City,State,Country,PostalCode,TelephoneNumber,Mobile,AccountEnabled,ImmutableId,$azObjectId,AdObjectGuid,AdOU,ObjectType,UsageLocation,DirSyncEnabled,Notes | Export-Csv -NoTypeInformation $UserCSV
+		$aadUsers = Get-AzureADUser -All $true | Select-Object DisplayName,SamAccountName,UserPrincipalName,Mail,$proxyAddreses,Description,GivenName,Surname,JobTitle,Department,CompanyName,StreetAddress,City,State,Country,PostalCode,TelephoneNumber,Mobile,AccountEnabled,ImmutableId,$azObjectId,AdObjectGuid,AdOU,ObjectType,UsageLocation,DirSyncEnabled,Notes
+
+		#Filter out external identities
+		$aadUsers | Where-Object {$_.UserPrincipalName -notmatch "#EXT#"} | Export-Csv -NoTypeInformation $UserCSV
 	}
 
 	if ($IncludeGroups){
 		#Export Azure AD groups to CSV for further manipulation against on premise AD
-		Write-Log "Exporting Azure AD group information to $GroupCSV"
+		Write-Log "Exporting Azure AD group information to $GroupCSV" -OutTo Screen
 		$proxyAddreses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
 		$azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
 		$aadGroups = Get-AzureADGroup -All $true | Select-Object DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddreses,Members,Description,ImmutableId,$azObjectId,AdObjectGuid,ObjectType,DirSyncEnabled,Notes
@@ -138,7 +141,7 @@ if ($MatchActiveDirectory){
 				$user.AdObjectGUID = $userOut.ObjectGUID
 				$user.AdOU = ($userOut.DistinguishedName -split "^(.+?),")[2]
 				if ($null -ne $user.AdObjectGUID -and $user.ImmutableId -eq ""){
-					$user.ImmutableId = [System.Convert]::ToBase64String($($userOut.ObjectGUID).tobytearray())
+					$user.ImmutableId = [System.Convert]::ToBase64String($($userOut.ObjectGUID).ToByteArray())
 				}
 			}else{
 				Write-Log "NOMATCH: $($user.UserPrincipalName)" -Level Warn
@@ -147,6 +150,8 @@ if ($MatchActiveDirectory){
 
 		#Assumes you might be switching machines between doing on premise and Azure AD, if not, no need to export/import CSV
 		$aadUsers | Export-Csv -NoTypeInformation $UserCSV
+		
+		Write-Log #Create gap in logs
 	}
 
 	if ($IncludeGroups){
@@ -187,6 +192,8 @@ if ($MatchActiveDirectory){
 
 		#Assumes you might be switching machines between doing on premise and Azure AD, if not, no need to export/import CSV
 		$aadGroups | Export-Csv -NoTypeInformation $GroupCSV
+		
+		Write-Log #Create gap in logs
 	}
 }
 
@@ -195,23 +202,18 @@ if ($UpdateImmutableId){
 	if ($IncludeUsers){
 		$LogPath = "AzureADMatchUsers.log"
 		Write-Log "Updating ImmutableId for users"
-		
+
 		#Import to update Azure AD with ImmutableId
 		$aadUsers = Import-Csv $UserCSV | Where-Object {$_.ImmutableId -ne ""}
 
 		#Iterate through users to update ImmutableId
 		foreach ($user in $aadUsers){
-			#Write-Log "$($user.DisplayName)"
-			#Write-Log "$($user.UserPrincipalName)"
-			#Write-Log "ObjectGUID: $($user.ObjectGUID)"
-			#Write-Log "ImmutableId: $($user.ImmutableId)"
 			Set-AzureADUser -ObjectId $user.AzObjectId -ImmutableId $user.ImmutableId
 			if ($?){
-				Write-Log "Updated user ImmutableId: $($user.UserPrincipalName) / $($user.ObjectGUID)"
+				Write-Log "Updated ImmutableId for user: $($user.UserPrincipalName) / $($user.AzObjectId) / $($user.ImmutableId)"
 			}else{
-				Write-Log "Failed updating user ImmutableId: $($user.UserPrincipalName) : $($Error[0].Exception.Message)" -Level Error
+				Write-Log "Failed updating ImmutableId for user: $($user.UserPrincipalName) : $($Error[0].Exception.Message)" -Level Error
 			}
-			#Write-Log
 		}
 	}
 }
@@ -220,25 +222,20 @@ if ($UpdateImmutableId){
 <# if ($UpdateGroups){
 	if ($IncludeGroups){
 		$LogPath = "AzureADMatchGroups.log"
-		Write-Log "Updating mS-DS-ConsistencyGuid for groups"
+		Write-Log "Updating ProxyAddresses for groups"
 
 		#Import to update Azure AD with ImmutableId
-		$aadGroups = Import-Csv $GroupCSV | Where-Object {$_.ImmutableId -ne ""}
+		$aadGroups = Import-Csv $GroupCSV | Where-Object {$_.DirSyncEnabled -eq ""}
 
 		#Iterate through groups to update ImmutableId
 		foreach ($group in $aadGroups){
-			Write-Log "$($group.DisplayName)"
-			Write-Log "$($group.SamAccountName)"
-			Write-Log "ObjectGUID: $($group.AdObjectGuid)"
-			Write-Log "ImmutableId: $($group.ImmutableId)"
-			#Set-AzureADGroup -ObjectId $group.AzObjectId -ImmutableId $group.ImmutableId
-			Set-ADGroup -Identity $group.AdObjectGuid -Replace @{'mS-DS-ConsistencyGuid'=$group.ImmutableId}
+			#Set-ADGroup -Identity $group.AdObjectGuid -Replace @{'mS-DS-ConsistencyGuid'=$group.ImmutableId}
+			Set-ADGroup -Identity $group.AdObjectGuid -Add @{'proxyAddresses'=$group.ProxyAddresses}
 			if ($?){
-				Write-Log "Updated group ImmutableId: $($group.DisplayName)"
+				Write-Log "Updated ProxyAddresses for group: $($group.DisplayName)"
 			}else{
-				Write-Log "Failed updating group ImmutableId: $($group.DisplayName) : $($Error[0].Exception.Message)" -Level Error
+				Write-Log "Failed updating ProxyAddresses for group: $($group.DisplayName) : $($Error[0].Exception.Message)" -Level Error
 			}
-			Write-Log
 		}
 	}
 } #>
