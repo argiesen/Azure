@@ -229,10 +229,10 @@ if ($UpdateImmutableId){
 		foreach ($group in $aadGroups){
 			Write-Log "$($group.DisplayName)"
 			Write-Log "$($group.SamAccountName)"
-			Write-Log "ObjectGUID: $($group.ObjectGUID)"
+			Write-Log "ObjectGUID: $($group.AdObjectGuid)"
 			Write-Log "ImmutableId: $($group.ImmutableId)"
 			#Set-AzureADGroup -ObjectId $group.AzObjectId -ImmutableId $group.ImmutableId
-			Set-ADGroup -Identity $dn -Replace @{'mS-DS-ConsistencyGuid'=$group.ImmutableId}
+			Set-ADGroup -Identity $group.AdObjectGuid -Replace @{'mS-DS-ConsistencyGuid'=$group.ImmutableId}
 			if ($?){
 				Write-Log "Updated group ImmutableId: $($group.DisplayName)"
 			}else{
