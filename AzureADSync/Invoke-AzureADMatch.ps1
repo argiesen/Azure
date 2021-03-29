@@ -5,9 +5,9 @@ param (
 	[Alias("Step2")]
 	[switch]$MatchActiveDirectory,
 	[Alias("Step3")]
-	#[switch]$UpdateImmutableId,
+	[switch]$UpdateImmutableId,
 	#[Alias("Step4")]
-	[switch]$UpdateConsistencyGuid,
+	#[switch]$UpdateGroups,
 	[string]$UserCSV = "AzureADUsers.csv",
 	[string]$GroupCSV = "AzureADGroups.csv",
 	[bool]$IncludeUsers = $true,
@@ -216,8 +216,8 @@ if ($UpdateImmutableId){
 	}
 }
 
-#UPDATE MS-DS-CONSISTENCYGUID IN AD
-<# if ($UpdateConsistencyGuid){
+#UPDATE GROUP PROXYADDRESSES IN AD
+<# if ($UpdateGroups){
 	if ($IncludeGroups){
 		$LogPath = "AzureADMatchGroups.log"
 		Write-Log "Updating mS-DS-ConsistencyGuid for groups"
