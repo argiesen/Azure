@@ -98,6 +98,7 @@ if ($IncludeUsers){
 
 			#Set ProxyAddresses
 			Set-ADUser -Identity $userOut.DistinguishedName -Replace @{ProxyAddresses=$user.ProxyAddresses} -ErrorAction SilentlyContinue
+
 			if ($?){
 				Write-Log "Set ProxyAddresses" -Indent 1
 			}else{
@@ -106,6 +107,7 @@ if ($IncludeUsers){
 
 			#Set email address
 			Set-ADUser -Identity $userOut.DistinguishedName -EmailAddress $user.Mail -ErrorAction SilentlyContinue
+
 			if ($?){
 				Write-Log "Set EmailAddress" -Indent 1
 			}else{
@@ -114,6 +116,7 @@ if ($IncludeUsers){
 
 			#Set name
 			Set-ADUser -Identity $userOut.DistinguishedName -GivenName $user.GivenName -Surname $user.Surname -ErrorAction SilentlyContinue
+
 			if ($?){
 				Write-Log "Set GivenName, Surname" -Indent 1
 			}else{
@@ -125,6 +128,7 @@ if ($IncludeUsers){
 			if ($user.Department -eq ""){$user.Department = $null}
 			if ($user.CompanyName -eq ""){$user.CompanyName = $null}
 			Set-ADUser -Identity $userOut.DistinguishedName -Title $user.JobTitle -Department $user.Department -Company $user.CompanyName -ErrorAction SilentlyContinue
+
 			if ($?){
 				Write-Log "Set Title, Department, Company" -Indent 1
 			}else{
@@ -154,6 +158,7 @@ if ($IncludeUsers){
 			if ($user.TelephoneNumber -eq ""){$user.TelephoneNumber = $null}
 			if ($user.Mobile -eq ""){$user.Mobile = $null}
 			Set-ADUser -Identity $userOut.DistinguishedName -OfficePhone $user.TelephoneNumber -MobilePhone $user.Mobile -ErrorAction SilentlyContinue
+
 			if ($?){
 				Write-Log "Set OfficePhone, MobilePhone" -Indent 1
 			}else{
@@ -186,7 +191,7 @@ if ($IncludeGroups){
 		if ($group.Members -ne ""){
 			foreach ($member in ($group.Members -split ';')){
 				Add-ADGroupMember -Identity $group.DisplayName -Members (Get-ADUser -Filter 'UserPrincipalName -eq $member' -ErrorAction SilentlyContinue).DistinguishedName -ErrorAction SilentlyContinue
-				
+
 				if ($?){
 					Write-Log "Added member to $($group.DisplayName): $member"
 				}else{
