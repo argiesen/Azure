@@ -86,7 +86,7 @@ if ($ExportAzureAD){
 		Write-Log "Exporting Azure AD group information to $GroupCSV" -OutTo Screen
 		$proxyAddresses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
 		$azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
-		$aadGroups = Get-AzureADGroup -All $true | Select-Object DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddresses,Members,Description,ImmutableId,$azObjectId,AdObjectGuid,AdOU,ObjectType,DirSyncEnabled,Notes
+		$aadGroups = Get-AzureADGroup -All $true | Select-Object DisplayName,SamAccountName,MailEnabled,Mail,MailNickName,$proxyAddresses,Members,Description,ImmutableId,OnPremisesSecurityIdentifier,$azObjectId,AdObjectGuid,AdOU,ObjectType,SecurityEnabled,DirSyncEnabled,Notes
 
 		foreach ($group in $aadGroups){
 			$group.Members = (Get-AzureADGroup -ObjectId $group.azObjectId | Get-AzureADGroupMember).UserPrincipalName -join ';'
@@ -236,8 +236,8 @@ if ($UpdateGroups){
 		#Iterate through groups to update ImmutableId
 		foreach ($group in $aadGroups){
 			foreach ($proxyAddress in ($group.ProxyAddresses -split ';')){
-				Set-ADGroup -Identity $group.AdObjectGuid -Add @{'proxyAddresses'=$proxyAddress}
-				
+				Set-ADGroup -Identity $group.AdObjectGuid -Add @{'proxyAddresses'=$proxyAddress} -ErrorAction SilentlyContinue
+
 				if ($?){
 					Write-Log "Added ProxyAddress for group: $($group.DisplayName) / $proxyAddress"
 				}else{
