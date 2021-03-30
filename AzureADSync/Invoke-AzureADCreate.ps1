@@ -176,7 +176,11 @@ if ($IncludeGroups){
 	foreach ($group in $aadGroups){
 		#Create group; try/catch for error handling
 		try {
-			New-ADGroup -Name $group.DisplayName -DisplayName $group.DisplayName -SamAccountName $group.DisplayName -Description $group.Description -GroupScope Universal -OtherAttributes @{'Mail'=$group.Mail; 'ProxyAddresses'=$group.ProxyAddresses} -ErrorAction SilentlyContinue
+			if ($group.SecurityEnabled -eq "True"){
+				New-ADGroup -Name $group.DisplayName -DisplayName $group.DisplayName -SamAccountName $group.DisplayName -Description $group.Description -GroupCategory Security -GroupScope Universal -OtherAttributes @{'Mail'=$group.Mail; 'ProxyAddresses'=$group.ProxyAddresses} -ErrorAction SilentlyContinue
+			}else{
+				New-ADGroup -Name $group.DisplayName -DisplayName $group.DisplayName -SamAccountName $group.DisplayName -Description $group.Description -GroupCategory Distribution -GroupScope Universal -OtherAttributes @{'Mail'=$group.Mail; 'ProxyAddresses'=$group.ProxyAddresses} -ErrorAction SilentlyContinue
+			}
 		}catch{
 			#Continue
 		}
