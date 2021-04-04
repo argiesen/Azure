@@ -9,28 +9,25 @@
                 "description": "The location where the resources will be deployed"
             }
         },
-        "storageAccountName": {
+        "wvdStorageAccountName": {
             "type": "string"
         },
-        "fileShareName": {
+        "wvdFileShareName": {
             "type": "string"
         },
-        "wvdVnetName": {
+        "wvdVirtualNetworkName": {
             "type": "string"
         },
-        "wvdVnetPrefix": {
+        "wvdVirtualNetworkPrefix": {
             "type": "string"
         },
-        "wvdVnetSnetName": {
+        "wvdVirtualNetworkSubnetName": {
             "type": "string"
         },
-        "wvdVnetSnetPrefix": {
+        "wvdVirtualNetworkSubnetPrefix": {
             "type": "string"
         },
-        "wvdVnetDnsServers": {
-            "type": "string"
-        },
-        "existingLocalVirtualNetworkName": {
+        "wvdVirtualNetworkDnsServers": {
             "type": "string"
         },
         "existingRemoteVirtualNetworkName": {
@@ -55,42 +52,44 @@
                 },
                 "parameters": {
                     "storageAccountName": {
-                        "value": "[parameters('storageAccountName')]"
+                        "value": "[parameters('wvdStorageAccountName')]"
                     },
                     "fileShareName": {
-                        "value": "[parameters('fileShareName')]"
+                        "value": "[parameters('wvdFileShareName')]"
                     }
                 }
             }
         },
         {
-            "name": "[parameters('wvdVnetName')]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2019-11-01",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "[parameters('wvdVnetName')]"
-            },
+            "name": "virtualNetworkLinkedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
             "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('wvdVnetPrefix')]"
-                    ]
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/argiesen/Azure/main/ARMTemplates/vnet-snet-custom-dns/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
                 },
-                "dhcpOptions": {
-                    "dnsServers":"[parameters('wvdVnetDnsServers')]"
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('wvdVnetSnetName')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('wvdVnetSnetPrefix')]"
-                        }
+                "parameters": {
+                    "VirtualNetworkName": {
+                        "value": "[parameters('wvdVirtualNetworkName')]"
+                    },
+                    "VirtualNetworkPrefix": {
+                        "value": "[parameters('wvdVirtualNetworkPrefix')]"
+                    },
+                    "VirtualSubnetName": {
+                        "value": "[parameters('wvdVirtualNetworkSubnetName')]"
+                    },
+                    "VirtualSubnetPrefix": {
+                        "value": "[parameters('wvdVirtualNetworkSubnetPrefix')]"
+                    },
+                    "VirtualNetworkDnsServers": {
+                        "value": "[parameters('wvdVirtualNetworkDnsServers')]"
                     }
-                ]
+                }
             }
         },
-         {
+        {
             "name": "vnetPeeringLinkedTemplate",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
@@ -102,7 +101,7 @@
                 },
                 "parameters": {
                     "existingLocalVirtualNetworkName": {
-                        "value": "[parameters('existingLocalVirtualNetworkName')]"
+                        "value": "[parameters('wvdVirtualNetworkName')]"
                     },
                     "existingRemoteVirtualNetworkName": {
                         "value": "[parameters('existingRemoteVirtualNetworkName')]"
