@@ -93,6 +93,9 @@
             "name": "vnetPeeringLinkedTemplate",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'virtualNetworkLinkedTemplate')]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
