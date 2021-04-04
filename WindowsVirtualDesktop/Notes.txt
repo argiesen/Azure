@@ -1,0 +1,24 @@
+New-AzResourceGroup -Name rg-wvd01-prd-westus2 -Location westus2
+
+$templateFile = "wvd-infra-new-vnet-template.json"
+$parameterFile = "wvd-infra-new-vnet-template.parameters.json"
+$parameterObject = @{
+	location = "westus2"
+	storageAccountName = "azdojowvdstorageaccount01"
+	fileShareName = "azdojowvdfs01"
+	wvdVnetName = "vnet-wvd01-prd-westus2"
+	wvdVnetPrefix = "10.1.0.0/16"
+	wvdVnetSnetName = "snet-wvd01-prd-westu2"
+	wvdVnetSnetPrefix = "10.1.0.0/24"
+	wvdVnetDnsServers = "10.0.10.4"
+	existingLocalVirtualNetworkName = "vnet-wvd01-prd-westus2"
+	existingRemoteVirtualNetworkName = "vnet-services-prd-westus2"
+	existingRemoteVirtualNetworkResourceGroupName = "rg-net01-prd-westus2"
+}
+New-AzResourceGroupDeployment -Name azdojowvd01 -ResourceGroupName rg-wvd01-prd-westus2 -TemplateFile $templateFile -TemplateParameterObject $parameterObject
+
+
+
+vnet peering link naming
+vnet dns - 10.0.10.4
+snet nsg - 
