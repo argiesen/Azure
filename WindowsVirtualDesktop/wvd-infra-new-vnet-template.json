@@ -9,31 +9,31 @@
                 "description": "The location where the resources will be deployed"
             }
         },
-        "wvdStorageAccountName": {
+        "StorageAccountName": {
             "type": "string"
         },
-        "wvdFileShareName": {
+        "FileShareName": {
             "type": "string"
         },
-        "wvdVirtualNetworkName": {
+        "VirtualNetworkName": {
             "type": "string"
         },
-        "wvdVirtualNetworkPrefix": {
+        "VirtualNetworkPrefix": {
             "type": "string"
         },
-        "wvdVirtualNetworkSubnetName": {
+        "VirtualNetworkSubnetName": {
             "type": "string"
         },
-        "wvdVirtualNetworkSubnetPrefix": {
+        "VirtualNetworkSubnetPrefix": {
             "type": "string"
         },
-        "wvdVirtualNetworkDnsServers": {
+        "VirtualNetworkDnsServers": {
             "type": "string"
         },
-        "existingRemoteVirtualNetworkName": {
+        "RemoteVirtualNetworkName": {
             "type": "string"
         },
-        "existingRemoteVirtualNetworkResourceGroupName": {
+        "RemoteVirtualNetworkResourceGroupName": {
             "type": "string"
         }
     },
@@ -52,10 +52,10 @@
                 },
                 "parameters": {
                     "storageAccountName": {
-                        "value": "[parameters('wvdStorageAccountName')]"
+                        "value": "[parameters('StorageAccountName')]"
                     },
                     "fileShareName": {
-                        "value": "[parameters('wvdFileShareName')]"
+                        "value": "[parameters('FileShareName')]"
                     }
                 }
             }
@@ -72,25 +72,25 @@
                 },
                 "parameters": {
                     "VirtualNetworkName": {
-                        "value": "[parameters('wvdVirtualNetworkName')]"
+                        "value": "[parameters('VirtualNetworkName')]"
                     },
                     "VirtualNetworkPrefix": {
-                        "value": "[parameters('wvdVirtualNetworkPrefix')]"
+                        "value": "[parameters('VirtualNetworkPrefix')]"
                     },
                     "VirtualSubnetName": {
-                        "value": "[parameters('wvdVirtualNetworkSubnetName')]"
+                        "value": "[parameters('VirtualNetworkSubnetName')]"
                     },
                     "VirtualSubnetPrefix": {
-                        "value": "[parameters('wvdVirtualNetworkSubnetPrefix')]"
+                        "value": "[parameters('VirtualNetworkSubnetPrefix')]"
                     },
                     "VirtualNetworkDnsServers": {
-                        "value": "[parameters('wvdVirtualNetworkDnsServers')]"
+                        "value": "[parameters('VirtualNetworkDnsServers')]"
                     }
                 }
             }
         },
         {
-            "name": "vnetPeeringLinkedTemplate",
+            "name": "vnetPeeringWVDLinkedTemplate",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
             "dependsOn": [
@@ -104,13 +104,39 @@
                 },
                 "parameters": {
                     "existingLocalVirtualNetworkName": {
-                        "value": "[parameters('wvdVirtualNetworkName')]"
+                        "value": "[parameters('VirtualNetworkName')]"
                     },
                     "existingRemoteVirtualNetworkName": {
-                        "value": "[parameters('existingRemoteVirtualNetworkName')]"
+                        "value": "[parameters('RemoteVirtualNetworkName')]"
                     },
                     "existingRemoteVirtualNetworkResourceGroupName": {
-                        "value": "[parameters('existingRemoteVirtualNetworkResourceGroupName')]"
+                        "value": "[parameters('RemoteVirtualNetworkResourceGroupName')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "vnetPeeringHubLinkedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'virtualNetworkLinkedTemplate')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/201-existing-vnet-to-vnet-peering/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "existingLocalVirtualNetworkName": {
+                        "value": "[parameters('RemoteVirtualNetworkName')]"
+                    },
+                    "existingRemoteVirtualNetworkName": {
+                        "value": "[parameters('VirtualNetworkName')]"
+                    },
+                    "existingRemoteVirtualNetworkResourceGroupName": {
+                        "value": "[resourceGroup().name]"
                     }
                 }
             }
