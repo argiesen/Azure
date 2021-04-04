@@ -116,9 +116,10 @@
             }
         },
         {
-            "name": "vnetPeeringHubLinkedTemplate",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-10-01",
+            "apiVersion": "2020-06-01",
+            "name": "vnetPeeringHubLinkedTemplate",
+            "resourceGroup": "[parameters('RemoteVirtualNetworkResourceGroupName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'virtualNetworkLinkedTemplate')]"
             ],
