@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "storageAccountName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "fileShareName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "wvdVnetName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "wvdVnetPrefix": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "wvdVnetSnetName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "wvdVnetSnetPrefix": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "existingLocalVirtualNetworkName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "existingRemoteVirtualNetworkName": {
+            "value": "" // TODO: Fill in parameter value
+        },
+        "existingRemoteVirtualNetworkResourceGroupName": {
+            "value": "" // TODO: Fill in parameter value
+        }
+    }
+}

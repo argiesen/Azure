@@ -14,6 +14,30 @@
         },
         "fileShareName": {
             "type": "string"
+        },
+        "wvdVnetName": {
+            "type": "string"
+        },
+        "wvdVnetPrefix": {
+            "type": "string"
+        },
+        "wvdVnetSnetName": {
+            "type": "string"
+        },
+        "wvdVnetSnetPrefix": {
+            "type": "string"
+        },
+        "wvdVnetDnsServers": {
+            "type": "string"
+        },
+        "existingLocalVirtualNetworkName": {
+            "type": "string"
+        },
+        "existingRemoteVirtualNetworkName": {
+            "type": "string"
+        },
+        "existingRemoteVirtualNetworkResourceGroupName": {
+            "type": "string"
         }
     },
     "functions": [],
@@ -40,57 +64,53 @@
             }
         },
         {
-            "name": "hub-vnet",
+            "name": "[parameters('wvdVnetName')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-11-01",
             "location": "[resourceGroup().location]",
             "tags": {
-                "displayName": "hub-vnet"
+                "displayName": "[parameters('wvdVnetName')]"
             },
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
-                        "10.0.0.0/16"
+                        "[parameters('wvdVnetPrefix')]"
                     ]
+                },
+                "dhcpOptions": {
+                    "dnsServers":"[parameters('wvdVnetDnsServers')]"
                 },
                 "subnets": [
                     {
-                        "name": "GatewaySubnet",
+                        "name": "[parameters('wvdVnetSnetName')]",
                         "properties": {
-                            "addressPrefix": "10.0.0.0/24"
-                        }
-                    },
-                    {
-                        "name": "hub-snet",
-                        "properties": {
-                            "addressPrefix": "10.0.1.0/24"
+                            "addressPrefix": "[parameters('wvdVnetSnetPrefix')]"
                         }
                     }
                 ]
             }
         },
-        {
-            "name": "vnet-net02-prd-westus2",
-            "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2019-11-01",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "vnet-net02-prd-westus2"
-            },
+         {
+            "name": "vnetPeeringLinkedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
             "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "10.1.0.0/16"
-                    ]
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/201-existing-vnet-to-vnet-peering/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
                 },
-                "subnets": [
-                    {
-                        "name": "wvd-snet",
-                        "properties": {
-                            "addressPrefix": "10.1.1.0/24"
-                        }
+                "parameters": {
+                    "existingLocalVirtualNetworkName": {
+                        "value": "[parameters('existingLocalVirtualNetworkName')]"
+                    },
+                    "existingRemoteVirtualNetworkName": {
+                        "value": "[parameters('existingRemoteVirtualNetworkName')]"
+                    },
+                    "existingRemoteVirtualNetworkResourceGroupName": {
+                        "value": "[parameters('existingRemoteVirtualNetworkResourceGroupName')]"
                     }
-                ]
+                }
             }
         }
     ],

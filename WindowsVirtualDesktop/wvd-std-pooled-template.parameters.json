@@ -1,0 +1,165 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "artifactsLocation": {
+            "value": "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_3-10-2021.zip"
+        },
+        "nestedTemplatesLocation": {
+            "value": "https://catalogartifact.azureedge.net/publicartifacts/Microsoft.Hostpool-ARM-1.2.1/"
+        },
+        "hostpoolName": {
+            "value": "hp-wvd01-prd-westus2"
+        },
+        "hostpoolDescription": {
+            "value": "Created through the WVD extension"
+        },
+        "location": {
+            "value": "westus2"
+        },
+        "validationEnvironment": {
+            "value": false
+        },
+        "addToWorkspace": {
+            "value": true
+        },
+        "hostpoolType": {
+            "value": "Pooled"
+        },
+        "loadBalancerType": {
+            "value": "BreadthFirst"
+        },
+        "vmTemplate": {
+            "value": "{\"domain\":\"azuredojo.net\",\"galleryImageOffer\":\"office-365\",\"galleryImagePublisher\":\"MicrosoftWindowsDesktop\",\"galleryImageSKU\":\"20h2-evd-o365pp\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"host-wvd\",\"osDiskType\":\"StandardSSD_LRS\",\"useManagedDisks\":true,\"vmSize\":{\"id\":\"Standard_D2s_v3\",\"cores\":2,\"ram\":8},\"galleryItemId\":\"microsoftwindowsdesktop.office-36520h2-evd-o365pp\"}"
+        },
+        "tokenExpirationTime": {
+            "value": "2021-04-03T19:04:11.252Z"
+        },
+        "vmAdministratorAccountUsername": {
+            "value": "azuser"
+        },
+        "vmAdministratorAccountPassword": {
+            "value": null
+        },
+        "administratorAccountUsername": {
+            "value": "vmjoiner@azuredojo.net"
+        },
+        "administratorAccountPassword": {
+            "value": null
+        },
+        "availabilityOption": {
+            "value": "None"
+        },
+        "availabilitySetName": {
+            "value": ""
+        },
+        "createAvailabilitySet": {
+            "value": false
+        },
+        "availabilitySetUpdateDomainCount": {
+            "value": 5
+        },
+        "availabilitySetFaultDomainCount": {
+            "value": 2
+        },
+        "availabilityZone": {
+            "value": 1
+        },
+        "vmResourceGroup": {
+            "value": "rg-wvd01-prd-westus2"
+        },
+        "vmLocation": {
+            "value": "westus2"
+        },
+        "vmSize": {
+            "value": "Standard_D2s_v3"
+        },
+        "vmNumberOfInstances": {
+            "value": 5
+        },
+        "vmNamePrefix": {
+            "value": "host-wvd"
+        },
+        "vmImageType": {
+            "value": "Gallery"
+        },
+        "vmDiskType": {
+            "value": "StandardSSD_LRS"
+        },
+        "vmUseManagedDisks": {
+            "value": true
+        },
+        "existingVnetName": {
+            "value": "vnet-wvd01-prd-westus2"
+        },
+        "existingSubnetName": {
+            "value": "snet-wvd01-prd-westu2"
+        },
+        "virtualNetworkResourceGroupName": {
+            "value": "rg-wvd01-prd-westus2"
+        },
+        "createNetworkSecurityGroup": {
+            "value": false
+        },
+        "domain": {
+            "value": "azuredojo.net"
+        },
+        "aadJoin": {
+            "value": false
+        },
+        "intune": {
+            "value": false
+        },
+        "hostpoolTags": {
+            "value": {}
+        },
+        "applicationGroupTags": {
+            "value": {}
+        },
+        "availabilitySetTags": {
+            "value": {}
+        },
+        "networkInterfaceTags": {
+            "value": {}
+        },
+        "networkSecurityGroupTags": {
+            "value": {}
+        },
+        "virtualMachineTags": {
+            "value": {}
+        },
+        "imageTags": {
+            "value": {}
+        },
+        "apiVersion": {
+            "value": "2019-12-10-preview"
+        },
+        "deploymentId": {
+            "value": "481ad6a9-647f-43db-bfaa-823c071cc02c"
+        },
+        "vmGalleryImageOffer": {
+            "value": "office-365"
+        },
+        "vmGalleryImagePublisher": {
+            "value": "MicrosoftWindowsDesktop"
+        },
+        "vmGalleryImageSKU": {
+            "value": "20h2-evd-o365pp"
+        },
+        "maxSessionLimit": {
+            "value": 10
+        },
+        "workspaceResourceGroup": {
+            "value": "rg-wvd01-prd-westus2"
+        },
+        "workspaceName": {
+            "value": "ws-wvd01-prd-westus2"
+        },
+        "workspaceLocation": {
+            "value": "westus2"
+        },
+        "allApplicationGroupReferences": {
+            "value": ""
+        }
+    }
+}
