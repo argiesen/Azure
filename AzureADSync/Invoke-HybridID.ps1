@@ -124,11 +124,11 @@ if ($ExportAzureAD){
 		if ($UserUPNFilter){
 			$aadUsers = Get-AzureADUser -All $true | Where-Object {$_.DirSyncEnabled -eq $null -and $_.AccountEnabled -eq $true -and $_.UserPrincipalName -notmatch "#EXT#" -and $_.UserPrincipalName -notmatch $UserUPNFilter} | `
 				Select-Object DisplayName,SamAccountName,UserPrincipalName,Mail,AdMail,$proxyAddresses,AdProxyAddresses,Description,GivenName,Surname,JobTitle,Department,CompanyName,StreetAddress,City,State,Country,PostalCode,`
-				TelephoneNumber,Mobile,ImmutableId,$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Created,UsageLocation,Notes
+				TelephoneNumber,Mobile,ImmutableId,$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Match,Status,UsageLocation,Notes
 		}else{
 			$aadUsers = Get-AzureADUser -All $true | Where-Object {$_.DirSyncEnabled -eq $null -and $_.AccountEnabled -eq $true -and $_.UserPrincipalName -notmatch "#EXT#"} | `
 				Select-Object DisplayName,SamAccountName,UserPrincipalName,Mail,AdMail,$proxyAddresses,AdProxyAddresses,Description,GivenName,Surname,JobTitle,Department,CompanyName,StreetAddress,City,State,Country,PostalCode,`
-				TelephoneNumber,Mobile,ImmutableId,$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Created,UsageLocation,Notes
+				TelephoneNumber,Mobile,ImmutableId,$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Match,Status,UsageLocation,Notes
 		}
 
 		foreach ($user in $aadUsers){
@@ -149,7 +149,7 @@ if ($ExportAzureAD){
 		#Filter out non-dir synced groups and obvious M365 groups (SPO:) for speed
 		$aadGroups = Get-AzureADGroup -All $true | Where-Object {$_.DirSyncEnabled -eq $null -and ((($_.ProxyAddresses -match '^SMTP:|^SPO:') -join ';') -notmatch "SPO:")} | `
 			Select-Object DisplayName,SamAccountName,MailEnabled,Mail,AdMail,MailNickName,$proxyAddresses,AdProxyAddresses,$members,Description,SecurityEnabled,ImmutableId,OnPremisesSecurityIdentifier,`
-			$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Created,Notes
+			$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Match,Status,Notes
 
 		#Define group type
 		foreach ($group in $aadGroups){
@@ -202,8 +202,10 @@ if ($MatchActiveDirectory){
 			if (($upnSuffixes | Foreach-Object {$upnDomain -match $_}) -and ($userOut = Get-ADUser -Filter 'UserPrincipalName -eq $upn' -Properties Mail,ProxyAddresses)){
 				if ($userOut.Mail -eq $user.Mail){
 					Write-Log "UPN+MAIL: $($user.UserPrincipalName)"
+					$user.Match = "UPN+MAIL"
 				}else{
 					Write-Log "UPN: $($user.UserPrincipalName)"
+					$user.Match = "UPN"
 				}
 			}
 
@@ -212,6 +214,7 @@ if ($MatchActiveDirectory){
 			if ($null -eq $userOut){
 				if ($user.Mail -ne "" -and ($userOut = Get-ADUser -Filter 'Mail -eq $mail' -Properties Mail,ProxyAddresses)){
 					Write-Log "MAIL: $($user.Mail)"
+					$user.Match = "MAIL"
 				}
 			}
 
@@ -220,12 +223,14 @@ if ($MatchActiveDirectory){
 			if ($null -eq $userOut){
 				if (($userOut = Get-ADUser -Filter 'Name -eq $displayName' -Properties Mail,ProxyAddresses)){
 					Write-Log "DISPLAYNAME: $($user.DisplayName)"
+					$user.Match = "DISPLAYNAME"
 				}
 			}
 
 			#Update user properties and calculate ImmutableId
 			if ($userOut){
 				$user.SamAccountName = $userOut.SamAccountName
+				$user.Status = "Matched"
 				$user.AdMail = $userOut.Mail
 				$user.AdProxyAddresses = ($userOut.ProxyAddresses -match '^SMTP:|^SIP:') -join ';'
 				$user.AdObjectGUID = $userOut.ObjectGUID
@@ -236,6 +241,7 @@ if ($MatchActiveDirectory){
 				}
 			}else{
 				Write-Log "NOMATCH: $($user.UserPrincipalName)" -Level Warn
+				$user.Status = "NotMatched"
 			}
 		}
 
@@ -263,17 +269,20 @@ if ($MatchActiveDirectory){
 			$mail = $group.Mail
 			if ($group.Mail -ne "" -and ($groupOut = Get-ADGroup -Filter 'Mail -eq $mail' -Properties Mail)){
 				Write-Log "MAIL: $($group.Mail)"
+				$group.Match = "MAIL"
 			}
 
 			#Last restort match based on DisplayName attribute
 			$displayName = $group.DisplayName
 			if ($null -eq $groupOut -and ($groupOut = Get-ADGroup -Filter 'Name -eq $displayName' -Properties Mail)){
 				Write-Log "DISPLAYNAME: $($group.DisplayName)"
+				$group.Match = "DISPLAYNAME"
 			}
 
 			#Update group properties and calculate ImmutableId
 			if ($groupOut){
 				$group.SamAccountName = $groupOut.SamAccountName
+				$group.Status = "Matched"
 				$group.AdMail = $groupOut.Mail
 				$group.AdProxyAddresses = ($groupOut.ProxyAddresses -match '^SMTP:') -join ';'
 				$group.AdObjectGUID = $groupOut.ObjectGUID
@@ -284,6 +293,7 @@ if ($MatchActiveDirectory){
 				}
 			}else{
 				Write-Log "NOMATCH: $($group.DisplayName)" -Level Warn
+				$group.Status = "NotMatched"
 			}
 		}
 
@@ -334,7 +344,7 @@ if ($UpdateActiveDirectory){
 				#If creation is successful, set additional user properties
 				if ($?){
 					Write-Log "Created user: $($user.UserPrincipalName) / $userPasswordString"
-					$user.Created = $true
+					$user.Status = "Created"
 
 					$upn = $user.UserPrincipalName
 					$userOut = Get-ADUser -Filter 'UserPrincipalName -eq $upn' -ErrorAction SilentlyContinue
@@ -450,7 +460,7 @@ if ($UpdateActiveDirectory){
 					$group.ImmutableId = [System.Convert]::ToBase64String($($groupOut.ObjectGUID).ToByteArray())
 
 					Write-Log "Created group: $($group.AdDN)"
-					$group.Created = $true
+					$group.Status = "Created"
 
 					#Set email address
 					if ($group.Mail -ne ""){
@@ -508,7 +518,7 @@ if ($UpdateActiveDirectory){
 
 			$aadUsers = Import-Csv $UserCSV
 
-			foreach ($user in ($aadUsers | Where-Object {$_.Created -ne "True"})){
+			foreach ($user in ($aadUsers | Where-Object {$_.Status -eq "Matched"})){
 				Write-Log "Updating: $($user.UserPrincipalName)"
 
 				#Set email address
@@ -541,7 +551,7 @@ if ($UpdateActiveDirectory){
 			$aadGroups = Import-Csv $GroupCSV
 
 			#Iterate through groups to update ProxyAddresses and Mail
-			foreach ($group in ($aadGroups | Where-Object {$_.Created -ne "True"})){
+			foreach ($group in ($aadGroups | Where-Object {$_.Status -eq "Matched"})){
 				Write-Log "Updating group: $($group.AdDN)"
 
 				#Set email address
