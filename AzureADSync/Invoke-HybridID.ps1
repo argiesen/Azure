@@ -73,10 +73,19 @@ $Indent = 0
 
 #COLLECT CLOUD OBJECTS FROM AZURE AD
 if ($ExportAzureAD){
+	#https://docs.microsoft.com/en-us/microsoft-365/community/all-about-groups
+
 	#Require AzureAD module, use Connect-AzureAD
 	Import-Module AzureAD -ErrorAction SilentlyContinue | Out-Null
 	if (!$?){
 		Write-Log "Unable to import AzureAD PS module. Quitting." -Level "Error"
+		return
+	}
+
+	#Require ExchangeOnlineManagement module, use Connect-ExchangeOnline
+	Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue | Out-Null
+	if (!$?){
+		Write-Log "Unable to import ExchangeOnlineManagement PS module. Quitting." -Level "Error"
 		return
 	}
 
@@ -87,11 +96,23 @@ if ($ExportAzureAD){
 		#Continue
 	}
 	if (!$AzureConnectivity){
-		Write-Log "Connecting to AzureAD..."
+		Write-Log "Connecting to Azure AD..."
 		try{
 			Connect-AzureAD -ErrorAction SilentlyContinue | Out-Null
 		}catch{
 			Write-Log "Unable to connect to Azure AD. Quitting." -Level "Error"
+			return
+		}
+	}
+
+	#Connect to Exchange Online
+	$ExchangeConnectivity = Get-Command Get-UnifiedGroup -ErrorAction SilentlyContinue
+	if (!$ExchangeConnectivity){
+		Write-Log "Connecting to Exchange Online..."
+		try{
+			Connect-ExchangeOnline -ErrorAction SilentlyContinue | Out-Null
+		}catch{
+			Write-Log "Unable to connect to Exchange Online. Quitting." -Level "Error"
 			return
 		}
 	}
@@ -110,8 +131,14 @@ if ($ExportAzureAD){
 				TelephoneNumber,Mobile,ImmutableId,$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Created,UsageLocation,Notes
 		}
 
+		foreach ($user in $aadUsers){
+			if (Get-Mailbox -Identity $user.azObjectId -RecipientTypeDetails SharedMailbox -ErrorAction SilentlyContinue){
+				$user.ObjectType = "SharedMailbox"
+			}
+		}
+
 		Write-Log "Exporting Azure AD user information to $UserCSV" -OutTo Screen
-		$aadUsers | Export-Csv -NoTypeInformation $UserCSV
+		$aadUsers | Sort-Object DisplayName | Export-Csv -NoTypeInformation $UserCSV
 	}
 
 	if ($IncludeGroups){
@@ -119,17 +146,21 @@ if ($ExportAzureAD){
 		$proxyAddresses = @{l='ProxyAddresses';e={($_.ProxyAddresses -match '^SMTP:') -join ';'}}
 		$members = @{l='Members';e={(Get-AzureADGroup -ObjectId $_.ObjectId | Get-AzureADGroupMember).UserPrincipalName -join ';'}}
 		$azObjectId = @{l='AzObjectId';e={$_.ObjectId}}
+		#Filter out non-dir synced groups and obvious M365 groups (SPO:) for speed
 		$aadGroups = Get-AzureADGroup -All $true | Where-Object {$_.DirSyncEnabled -eq $null -and ((($_.ProxyAddresses -match '^SMTP:|^SPO:') -join ';') -notmatch "SPO:")} | `
 			Select-Object DisplayName,SamAccountName,MailEnabled,Mail,AdMail,MailNickName,$proxyAddresses,AdProxyAddresses,$members,Description,SecurityEnabled,ImmutableId,OnPremisesSecurityIdentifier,`
 			$azObjectId,AdObjectGuid,AdDN,AdOU,ObjectType,Created,Notes
 
 		#Define group type
 		foreach ($group in $aadGroups){
-			if ($group.SecurityEnabled -eq $true){
+			if (Get-UnifiedGroup -Identity $group.azObjectId -ErrorAction SilentlyContinue){
+				$group.ObjectType = "GroupUnified"
+			}elseif ($group.SecurityEnabled -eq $true){
 				if ($group.MailEnabled -eq $true){
 					$group.ObjectType = "GroupMailSecurity"
 				}else{
 					$group.ObjectType = "GroupSecurity"
+					$group.MailNickName = $null
 				}
 			}elseif ($group.MailEnabled -eq $true){
 				$group.ObjectType = "GroupDistribution"
@@ -138,7 +169,7 @@ if ($ExportAzureAD){
 
 		#Export non-M365 groups
 		Write-Log "Exporting Azure AD group information to $GroupCSV" -OutTo Screen
-		$aadGroups | Export-Csv -NoTypeInformation $GroupCSV
+		$aadGroups | Where-Object {$_.ObjectType -ne "GroupUnified"} | Sort-Object DisplayName | Export-Csv -NoTypeInformation $GroupCSV
 	}
 }
 
@@ -570,7 +601,7 @@ if ($UpdateAzureAD){
 		#Continue
 	}
 	if (!$AzureConnectivity){
-		Write-Log "Connecting to AzureAD..."
+		Write-Log "Connecting to Azure AD..."
 		try{
 			Connect-AzureAD -ErrorAction SilentlyContinue | Out-Null
 		}catch{
