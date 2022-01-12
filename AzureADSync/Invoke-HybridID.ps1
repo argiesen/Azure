@@ -161,6 +161,7 @@ if ($ExportAzureAD){
 				}else{
 					$group.ObjectType = "GroupSecurity"
 					$group.MailNickName = $null
+					$group.Notes += "Non mail-enabled security groups do not support soft or hard matching"
 				}
 			}elseif ($group.MailEnabled -eq $true){
 				$group.ObjectType = "GroupDistribution"
@@ -354,6 +355,7 @@ if ($UpdateActiveDirectory){
 					$user.ImmutableId = [System.Convert]::ToBase64String($($userOut.ObjectGUID).ToByteArray())
 
 					#Set ProxyAddresses
+					#Need to split proxyAddresses at ;
 					Set-ADUser -Identity $user.AdDN -Replace @{ProxyAddresses=$user.ProxyAddresses} -ErrorAction SilentlyContinue
 
 					if ($?){
