@@ -1,3 +1,9 @@
+# Create storage account
+```
+<Insert code here>
+```
+
+# Enable AD DS authentication
 ```
 # Download AzFilesHybrid module
 $ProgressPreference = 'SilentlyContinue'
@@ -44,4 +50,21 @@ Join-AzStorageAccount `
 
 #Run the command below if you want to enable AES 256 authentication. If you plan to use RC4, you can skip this step.
 Update-AzStorageAccountAuthForAES256 -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName
+```
+
+# Create file share and assign permissions
+```
+New-AzRmStorageShare `
+	-ResourceGroupName $resourceGroupName `
+	-StorageAccountName $storageAccountName `
+	-Name $shareName `
+	-QuotaGiB 1024
+
+# Assign file share permissions
+# Get the name of the custom role
+$FileShareContributorRole = Get-AzRoleDefinition "<role-name>" #Use one of the built-in roles: Storage File Data SMB Share Reader, Storage File Data SMB Share Contributor, Storage File Data SMB Share Elevated Contributor
+# Constrain the scope to the target file share
+$scope = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Storage/storageAccounts/<storage-account>/fileServices/default/fileshares/<share-name>"
+# Assign the custom role to the target identity with the specified scope.
+New-AzRoleAssignment -SignInName <user-principal-name> -RoleDefinitionName $FileShareContributorRole.Name -Scope $scope
 ```
