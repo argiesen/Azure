@@ -12,7 +12,8 @@ Invoke-WebRequest -Uri https://github.com/Azure-Samples/azure-files-samples/rele
 Expand-Archive -Path AzFilesHybrid.zip -DestinationPath .\
 
 # Run from a domain joined machine
-.\AzFilesHybrid\CopyToPSPath.ps1
+Set-Location .\AzFilesHybrid
+.\CopyToPSPath.ps1
 
 # Import AzFilesHybrid module
 Import-Module -Name AzFilesHybrid
