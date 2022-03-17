@@ -61,6 +61,7 @@ Update-AzStorageAccountAuthForAES256 -ResourceGroupName $ResourceGroupName -Stor
 ```
 
 # Create file share and assign permissions
+Continue with the variables from the previous section.
 ```
 New-AzRmStorageShare `
 	-ResourceGroupName $resourceGroupName `
@@ -70,9 +71,10 @@ New-AzRmStorageShare `
 
 # Assign file share permissions
 # Get the name of the custom role
-$FileShareContributorRole = Get-AzRoleDefinition "<role-name>" #Use one of the built-in roles: Storage File Data SMB Share Reader, Storage File Data SMB Share Contributor, Storage File Data SMB Share Elevated Contributor
+#Use one of the built-in roles: Storage File Data SMB Share Reader, Storage File Data SMB Share Contributor, Storage File Data SMB Share Elevated Contributor
+$FileShareContributorRole = Get-AzRoleDefinition "Storage File Data SMB Share Contributor"
 # Constrain the scope to the target file share
-$scope = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Storage/storageAccounts/<storage-account>/fileServices/default/fileshares/<share-name>"
+$scope = "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$storageAccountName/fileServices/default/fileshares/$shareName"
 # Assign the custom role to the target identity with the specified scope.
 New-AzRoleAssignment -SignInName <user-principal-name> -RoleDefinitionName $FileShareContributorRole.Name -Scope $scope
 ```
