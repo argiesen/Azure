@@ -20,7 +20,7 @@ Import-Module -Name AzFilesHybrid
 ```
 Allow PowerShell to download any necessary modules. Restarting PowerShell and re-running the Import-Module command multiple times may be required.
 
-Restart PowerShell
+Once complete, restart PowerShell before proceeding.
 ```
 # Import AzFilesHybrid module
 Import-Module -Name AzFilesHybrid
