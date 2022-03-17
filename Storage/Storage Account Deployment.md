@@ -69,8 +69,7 @@ $userPrincipalName = "<user-principal-name>"
 New-AzRmStorageShare `
 	-ResourceGroupName $resourceGroupName `
 	-StorageAccountName $storageAccountName `
-	-Name $shareName `
-	-QuotaGiB 1024
+	-Name $shareName
 
 # Assign file share permissions
 # Get the name of the custom role
