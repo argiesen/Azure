@@ -16,6 +16,12 @@ Expand-Archive -Path AzFilesHybrid.zip -DestinationPath AzFilesHybrid
 
 # Import AzFilesHybrid module
 Import-Module -Name AzFilesHybrid
+```
+
+Restart PowerShell
+```
+# Import AzFilesHybrid module
+Import-Module -Name AzFilesHybrid
 
 # Login with an Azure AD credential that has either storage account owner or contributer Azure role assignment
 # If you are logging into an Azure environment other than Public (ex. AzureUSGovernment) you will need to specify that.
