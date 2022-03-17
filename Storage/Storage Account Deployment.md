@@ -9,7 +9,7 @@
 $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Invoke-WebRequest -Uri https://github.com/Azure-Samples/azure-files-samples/releases/latest/download/AzFilesHybrid.zip -OutFile AzFilesHybrid.zip
-Expand-Archive -Path AzFilesHybrid.zip -DestinationPath AzFilesHybrid
+Expand-Archive -Path AzFilesHybrid.zip -DestinationPath .\
 
 # Run from a domain joined machine
 .\AzFilesHybrid\CopyToPSPath.ps1
