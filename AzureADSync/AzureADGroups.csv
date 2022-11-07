@@ -1,0 +1,3 @@
+"DisplayName","SamAccountName","MailEnabled","Mail","AdMail","MailNickName","ProxyAddresses","AdProxyAddresses","Members","Description","SecurityEnabled","ImmutableId","OnPremisesSecurityIdentifier","AzObjectId","AdObjectGuid","AdDN","AdOU","ObjectType","Match","Status","Notes"
+"SecurityGroup1",,"False",,,,"",,"PattiF@vmwdojo.com","SecurityGroup1","True",,,"7cfe9d16-30dd-4d64-8483-4e671f2e1726",,,,"GroupSecurity",,,"Security groups do not support soft or hard matching"
+"VMware Dojo",,"True","vmwdojo@vmwdojo.com",,"vmwdojo","smtp:distrotest@vmwdojo.com;SMTP:vmwdojo@vmwdojo.com",,"AlexW@vmwdojo.com;agiesen@vmwdojo.com",,"False",,,"bacf8191-1df6-4b47-94a5-9da5a66dd8c3",,,,"GroupDistribution",,,
