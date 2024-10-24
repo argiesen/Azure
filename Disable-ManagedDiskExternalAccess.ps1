@@ -1,5 +1,5 @@
-$filterSubscriptions = Read-Host -Prompt "Enter subscription ID (optional): "
-$filterResourceGroups = Read-Host -Prompt "Enter resource group name (optional): "
+$filterSubscriptions = Read-Host -Prompt "Enter subscription ID (optional)"
+$filterResourceGroups = Read-Host -Prompt "Enter resource group name (optional)"
 
 # Get subscriptions
 $subscriptions = @()
