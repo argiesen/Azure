@@ -2,8 +2,7 @@
 .SYNOPSIS
     Tags all Azure VMs across all subscriptions with their hostname using Azure Automation.
 
-    Requires Virtual Machine Contributor role on the VM and the ability to run scripts.
-    az role assignment create --assignee <principalId> --role "Virtual Machine Contributor" --scope /subscriptions/<sub-id>
+    Requires Virtual Machine Contributor role on the VM.
 #>
 
 # Authenticate using the system-assigned managed identity
@@ -18,6 +17,7 @@ foreach ($sub in $subscriptions) {
 
     try {
         $vms = Get-AzVM -Status
+        Write-Output "Found $($vms.Count) VMs in subscription $($sub.Name)"
     } catch {
         Write-Warning "Unable to get VMs for subscription $($sub.Name): $_"
         continue
@@ -27,21 +27,35 @@ foreach ($sub in $subscriptions) {
         $vmName = $vm.Name
         $resourceGroup = $vm.ResourceGroupName
 
-        Write-Output "Processing VM: $vmName in $resourceGroup"
+        Write-Output "[$vmName] Processing VM (RG: $resourceGroup)"
 
         try {
-            $result = Invoke-AzVMRunCommand -ResourceGroupName $resourceGroup -Name $vmName `
-                        -CommandId 'RunPowerShellScript' -Script 'hostname' -ErrorAction Stop
+            if ($vm.PowerState -ne "VM running") {
+                Write-Warning "[$vmName] VM is not running. Skipping."
+                continue
+            }
 
-            $hostname = ($result.Value | Where-Object { $_.Name -eq 'stdout' }).Message.Trim()
+            if ($vm.StorageProfile.Osdisk.OsType -eq "Windows") {
+                $result = Invoke-AzVMRunCommand -ResourceGroupName $resourceGroup -Name $vmName `
+                    -CommandId 'RunPowerShellScript' -ScriptString 'hostname' -ErrorAction Stop
 
+                $hostname = ($result.Value | Where-Object { $_.Code -match 'stdout' }).Message.Trim()
+            } elseif ($vm.StorageProfile.Osdisk.OsType -eq "Linux") {
+                $result = Invoke-AzVMRunCommand -ResourceGroupName $resourceGroup -Name $vmName `
+                    -CommandId 'RunShellScript' -ScriptString 'hostname' -ErrorAction Stop
+
+                $regex = '\[stdout\](.+)\[stderr\]'
+                $options = [System.Text.RegularExpressions.RegexOptions]::Singleline
+                $hostname = ([RegEx]::Matches($result.Value.Message,$regex,$options)).Groups[1].Value.Trim()
+            }
+            
             if (-not [string]::IsNullOrWhiteSpace($hostname)) {
                 $tags = $vm.Tags
                 if (-not $tags) { $tags = @{} }
                 $tags["Hostname"] = $hostname
 
                 # Update tag
-                Set-AzResource -ResourceId $vm.Id -Tag $tags -Force
+                Set-AzResource -ResourceId $vm.Id -Tag $tags -Force | Out-Null
 
                 Write-Output "[$vmName] Tagged with Hostname: $hostname"
             } else {
