@@ -1,25 +1,47 @@
 <#
-Created by: CompuNet Inc
-Authors: Andy Giesen <agiesen@compunet.biz>
-Last Modified February 23, 2026
+  .SYNOPSIS
+    Adds a new "site" to an existing Azure Front Door Standard/Premium profile, including custom domain(s), origin group, route, and WAF association.
 
-Prereqs:
-  Install-Module Az
+    Requires the 'CDN Contributor' role on the AFD profile.
+    
+  .DESCRIPTION
+    This script is designed to automate the process of adding a new "site" to an existing Azure Front Door Standard/Premium profile. A "site" in this context includes custom domain(s), an origin group with an origin, a route on an existing endpoint, and association with a WAF security policy.
 
-Readme:
-  This script adds a new "site" to an existing Azure Front Door Standard/Premium profile. In AFD, a "site" is typically represented as a combination of:
-    - Custom Domain(s)
-    - Origin Group + Origin(s)
-    - Route(s) on an Endpoint
-    - WAF Policy Association
+    The script performs the following steps:
+      1) Adds one or more custom domains to an existing AFD endpoint.
+      2) Creates a new origin group and origin for the primary domain.
+      3) Creates a new route on the specified endpoint that forwards traffic to the new origin group, and associates the custom domain with this route.
+      4) Associates the custom domain with an existing WAF security policy.
 
-  The script performs the following steps:
-    1) Adds one or more custom domains to an existing AFD endpoint.
-    2) Creates a new origin group and origin for the primary domain.
-    3) Creates a new route on the specified endpoint that forwards traffic to the new origin group, and associates the custom domain with this route.
-    4) Associates the custom domain with an existing WAF security policy.
+    Note: The script assumes that the AFD profile and endpoint already exist, and that you have an existing WAF policy to associate with. It does not create these resources.
 
-  Note: The script assumes that the AFD profile and endpoint already exist, and that you have an existing WAF policy to associate with. It does not create these resources.
+  .NOTES
+    Name: New-AFDSite.ps1
+    DateCreated: 2026-02-23
+    Author: Andy Giesen (agiesen@compunet.biz)
+
+    Prerequisites: Install-Module Az
+
+  .PARAMETER SubscriptionId
+    The subscription ID where the AFD profile exists.
+
+  .PARAMETER ResourceGroupName
+    The resource group name of the AFD profile.
+
+  .PARAMETER ProfileName
+    The name of the existing AFD profile.
+
+  .PARAMETER EndpointName
+    The name of the existing AFD endpoint to which the route will be added.
+
+  .PARAMETER SecurityPolicyName
+    The name of the existing WAF security policy to associate with the custom domain.
+
+  .PARAMETER PrimaryDomainName
+    The primary custom domain name to add (e.g. "www.contoso.com"). This domain will be used to create the origin and route.
+    
+  .PARAMETER CustomDomainName
+    An array of custom domain names to add (e.g. "www.contoso.com", "contoso.com"). These domains will be associated with the route and WAF policy.
 #>
 
 param (
@@ -136,11 +158,16 @@ if ($null -ne $checkOriginGroup) {
   $originGroup = $checkOriginGroup
   Write-Host "Origin group already exists: $($checkOriginGroup.Name)"
 } else {
+  <#
   $healthProbe = New-AzFrontDoorCdnOriginGroupHealthProbeSettingObject `
     -ProbeIntervalInSecond 60 `
     -ProbePath "/" `
     -ProbeProtocol "Https" `
     -ProbeRequestType "GET"
+
+    # To add health probe functionality, uncomment this section and 
+    # add '-HealthProbeSetting $healthProbe' to the New-AzFrontDoorCdnOriginGroup command below.
+  #>
 
   $loadBalancing = New-AzFrontDoorCdnOriginGroupLoadBalancingSettingObject `
     -AdditionalLatencyInMillisecond 50 `
@@ -151,7 +178,6 @@ if ($null -ne $checkOriginGroup) {
     -ResourceGroupName  $ResourceGroupName `
     -ProfileName        $ProfileName `
     -OriginGroupName    $OriginGroupName `
-    -HealthProbeSetting $healthProbe `
     -LoadBalancingSetting $loadBalancing
 
   Write-Host "Created origin group: $($originGroup.Name)"
