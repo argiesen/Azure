@@ -6,9 +6,20 @@ Last Modified February 23, 2026
 Prereqs:
   Install-Module Az
 
-Notes:
-  - This is for Front Door Standard/Premium (Az.Cdn "FrontDoorCdn*" cmdlets).
-  - DNS validation / certificate enablement for the custom domain is separate from merely creating the domain resource.
+Readme:
+  This script adds a new "site" to an existing Azure Front Door Standard/Premium profile. In AFD, a "site" is typically represented as a combination of:
+    - Custom Domain(s)
+    - Origin Group + Origin(s)
+    - Route(s) on an Endpoint
+    - WAF Policy Association
+
+  The script performs the following steps:
+    1) Adds one or more custom domains to an existing AFD endpoint.
+    2) Creates a new origin group and origin for the primary domain.
+    3) Creates a new route on the specified endpoint that forwards traffic to the new origin group, and associates the custom domain with this route.
+    4) Associates the custom domain with an existing WAF security policy.
+
+  Note: The script assumes that the AFD profile and endpoint already exist, and that you have an existing WAF policy to associate with. It does not create these resources.
 #>
 
 param (
@@ -34,7 +45,7 @@ $ErrorActionPreference = "Stop"
 $context = Get-AzContext
 
 if (-not $context -or $context.Subscription.Id -ne $SubscriptionId) {
-    Connect-AzAccount -Subscription $SubscriptionId
+    Connect-AzAccount -Subscription $SubscriptionId | Out-Null
 }
 
 # Origin group + origin to create
