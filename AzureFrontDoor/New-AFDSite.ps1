@@ -1,19 +1,17 @@
 <#
+Created by: CompuNet Inc
+Authors: Andy Giesen <agiesen@compunet.biz>
+Last Modified February 23, 2026
+
 Prereqs:
-  Install-Module Az -Scope CurrentUser
+  Install-Module Az
 
 Notes:
   - This is for Front Door Standard/Premium (Az.Cdn "FrontDoorCdn*" cmdlets).
   - DNS validation / certificate enablement for the custom domain is separate from merely creating the domain resource.
 #>
 
-# To Do Items
-# 1. Vibe code double check, finish validation of command, syntax, and logic
-# 2. Test end to end
-# 3. Add support for multiple domains
-# 4. Add trigger for automation account runbook to validate domains
-
-<# param (
+param (
     [Parameter(Mandatory = $true)]
     [string]$SubscriptionId,
     [Parameter(Mandatory = $true)]
@@ -28,20 +26,16 @@ Notes:
     [string]$PrimaryDomainName,
     [Parameter(Mandatory = $true)]
     [string[]]$CustomDomainName
-) #>
+)
 
 $ErrorActionPreference = "Stop"
 
-# -----------------------------
-# Inputs (edit these)
-# -----------------------------
-$SubscriptionId         = "42676ccd-57a1-4fc2-9584-3b3975de9e56"
-$ResourceGroupName      = "ag-afd-wus3"
-$ProfileName            = "ag-afd"
-$EndpointName           = "ag-afd1"
-$SecurityPolicyName     = "ag-afd-secpolicy"
-$PrimaryDomainName      = "agiesen.com"                                   # your primary domain name
-$CustomDomainName       = "agiesen.com","www.agiesen.com"                      # your vanity hostname (CNAME target is the afd endpoint)
+# Check if already connected to the right subscription, otherwise connect
+$context = Get-AzContext
+
+if (-not $context -or $context.Subscription.Id -ne $SubscriptionId) {
+    Connect-AzAccount -Subscription $SubscriptionId
+}
 
 # Origin group + origin to create
 $OriginGroupName        = $PrimaryDomainName.Replace(".", "-") + "-origin-group"
@@ -87,6 +81,16 @@ foreach ($domain in $CustomDomainName) {
 
     if ($null -ne $checkCustomDomain) {
       $customDomain = $checkCustomDomain
+      $customDomains += $customDomain
+
+      # Collect DNS records for output to validate then migrate the domain:
+      $DnsRecords += [PSCustomObject]@{
+        TxtRecord           = "_auth." + $customDomain.HostName
+        TxtValue            = $customDomain.ValidationPropertyValidationToken
+        CnameRecord         = $customDomain.HostName
+        CnameValue          = $endpoint.HostName
+      }
+
       Write-Host "Custom domain already exists: $($checkCustomDomain.Name) ($domain)"
     } else {
       $customDomain = New-AzFrontDoorCdnCustomDomain `
@@ -95,14 +99,7 @@ foreach ($domain in $CustomDomainName) {
         -CustomDomainName  $domain.Replace(".", "-") `
         -HostName          $domain
 
-      # Validation token (TXT record value)
-      #$validationToken = $customDomain.ValidationPropertyValidationToken
-
-      # Endpoint hostname (CNAME target)
-      #$endpointHostName = $endpoint.HostName
-
-      # Output
-      #Write-Host "DNS records to validate then migrate the domain:"
+      # Collect DNS records for output to validate then migrate the domain:
       $DnsRecords += [PSCustomObject]@{
         TxtRecord           = "_auth." + $customDomain.HostName
         TxtValue            = $customDomain.ValidationPropertyValidationToken
@@ -261,5 +258,6 @@ if ($addedAssociation) {
   Write-Host "Updated security policy: $($updatedPolicy.Name)"
 }
 
+Write-Host
 Write-Host "DNS records to first validate then migrate the domain(s):"
 $DnsRecords | Format-Table -AutoSize
