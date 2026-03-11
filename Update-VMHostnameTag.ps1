@@ -1,12 +1,30 @@
 <#
-.SYNOPSIS
+  .SYNOPSIS
     Tags all Azure VMs across all subscriptions with their hostname using Azure Automation.
 
-    Requires Virtual Machine Contributor role on the VM.
+    Requires 'Tag Contributor' role on VMs to update tags.
+    Requires 'Virtual Machine Contributor' role or Microsoft.Compute/virtualMachines/runCommand/action permission to execute the run commands.
+
+  .DESCRIPTION
+    This script connects to Azure using the system-assigned managed identity, iterates through all accessible subscriptions, retrieves all VMs, executes a command to get the hostname, and updates the VM's tags with the hostname.
+
+  .PARAMETER TagName
+    The name of the tag to use for storing the hostname.
+
+  .NOTES
+    Name: Update-VMHostnameTag.ps1
+    DateCreated: 2026-03-11
+    Author: Andy Giesen (agiesen@compunet.biz)
 #>
 
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $true)]
+    [string]$TagName
+)
+
 # Authenticate using the system-assigned managed identity
-Connect-AzAccount -Identity
+Connect-AzAccount -Identity | Out-Null
 
 # Get all subscriptions the identity has access to
 $subscriptions = Get-AzSubscription
@@ -52,7 +70,7 @@ foreach ($sub in $subscriptions) {
             if (-not [string]::IsNullOrWhiteSpace($hostname)) {
                 $tags = $vm.Tags
                 if (-not $tags) { $tags = @{} }
-                $tags["Hostname"] = $hostname
+                $tags[$TagName] = $hostname
 
                 # Update tag
                 Set-AzResource -ResourceId $vm.Id -Tag $tags -Force | Out-Null
