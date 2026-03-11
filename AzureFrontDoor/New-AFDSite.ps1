@@ -3,7 +3,7 @@
     Adds a new "site" to an existing Azure Front Door Standard/Premium profile, including custom domain(s), origin group, route, and WAF association.
 
     Requires the 'CDN Contributor' role on the AFD profile.
-    
+
   .DESCRIPTION
     This script is designed to automate the process of adding a new "site" to an existing Azure Front Door Standard/Premium profile. A "site" in this context includes custom domain(s), an origin group with an origin, a route on an existing endpoint, and association with a WAF security policy.
 
@@ -58,16 +58,22 @@ param (
     [Parameter(Mandatory = $true)]
     [string]$PrimaryDomainName,
     [Parameter(Mandatory = $true)]
-    [string[]]$CustomDomainName
+    [string[]]$CustomDomainName,
+    [Parameter(Mandatory = $false)]
+    [switch]$HealthProbeEnabled
 )
 
 $ErrorActionPreference = "Stop"
 
-# Check if already connected to the right subscription, otherwise connect
-$context = Get-AzContext
+# Validate DNS name format for primary domain and custom domains
+# Set all domains to lowercase to avoid casing issues with lookups and comparisons
+$CustomDomainName = $CustomDomainName.ToLower()
+$PrimaryDomainName = $PrimaryDomainName.ToLower()
 
-if (-not $context -or $context.Subscription.Id -ne $SubscriptionId) {
-    Connect-AzAccount -Subscription $SubscriptionId | Out-Null
+# Check if custom domain names contains primary domain
+# if not add primary domain to the list of custom domains
+if (-not ($CustomDomainName -contains $PrimaryDomainName)) {
+    $CustomDomainName += $PrimaryDomainName
 }
 
 # Origin group + origin to create
@@ -90,7 +96,34 @@ $WafPolicyId            = ""  # e.g. "/subscriptions/.../resourceGroups/.../prov
 # -----------------------------
 # Connect / Context
 # -----------------------------
-Select-AzSubscription -SubscriptionId $SubscriptionId | Out-Null
+# Check if already connected to the right subscription, otherwise connect
+try {
+    $context = Get-AzContext
+
+    if (-not $context -or $context.Subscription.Id -ne $SubscriptionId) {
+        $null = Connect-AzAccount -Subscription $SubscriptionId | Out-Null
+    }
+} catch {
+  Write-Host "Failed to connect to Azure subscription '$SubscriptionId'. Please verify the subscription ID is correct and you have access to it." -ForegroundColor Red
+  return
+}
+
+# -----------------------------
+# Verify resource group, AFD profile, endpoint, and security policy resources exist
+# -----------------------------
+try { $null = Get-AzResourceGroup -Name $ResourceGroupName -ErrorAction Stop }
+catch { Write-Host "Resource group '$ResourceGroupName' not found in subscription '$SubscriptionId'. Please verify the resource group exists and you have access to it." -ForegroundColor Red; return }
+
+try { $null = Get-AzFrontDoorCdnProfile -ResourceGroupName $ResourceGroupName -ProfileName $ProfileName -ErrorAction Stop }
+catch { Write-Host "Profile '$ProfileName' not found in resource group '$ResourceGroupName'. Please verify the profile exists and you have access to it." -ForegroundColor Red; return }
+
+try { $null = Get-AzFrontDoorCdnEndpoint -ResourceGroupName $ResourceGroupName -ProfileName $ProfileName -EndpointName $EndpointName -ErrorAction Stop }
+catch { Write-Host "Endpoint '$EndpointName' not found in profile '$ProfileName'. Please verify the endpoint exists and you have access to it." -ForegroundColor Red; return }
+
+try { $null = Get-AzFrontDoorCdnSecurityPolicy -ResourceGroupName $ResourceGroupName -ProfileName $ProfileName -Name $SecurityPolicyName -ErrorAction Stop }
+catch { Write-Host "Security policy '$SecurityPolicyName' not found in profile '$ProfileName'. Please verify the security policy exists and you have access to it." -ForegroundColor Red; return }
+
+Write-Host "Successfully connected to subscription and verified resources."
 
 # -----------------------------
 # 1) Add a custom domain to the existing AFD profile
@@ -155,46 +188,51 @@ $checkOriginGroup = Get-AzFrontDoorCdnOriginGroup `
   -ErrorAction SilentlyContinue
 
 if ($null -ne $checkOriginGroup) {
-  $originGroup = $checkOriginGroup
-  Write-Host "Origin group already exists: $($checkOriginGroup.Name)"
+    $originGroup = $checkOriginGroup
+    Write-Host "Origin group already exists: $($checkOriginGroup.Name)"
 } else {
-  <#
-  $healthProbe = New-AzFrontDoorCdnOriginGroupHealthProbeSettingObject `
-    -ProbeIntervalInSecond 60 `
-    -ProbePath "/" `
-    -ProbeProtocol "Https" `
-    -ProbeRequestType "GET"
+    $healthProbe = New-AzFrontDoorCdnOriginGroupHealthProbeSettingObject `
+      -ProbeIntervalInSecond 60 `
+      -ProbePath "/" `
+      -ProbeProtocol "Https" `
+      -ProbeRequestType "GET"
 
-    # To add health probe functionality, uncomment this section and 
-    # add '-HealthProbeSetting $healthProbe' to the New-AzFrontDoorCdnOriginGroup command below.
-  #>
+    $loadBalancing = New-AzFrontDoorCdnOriginGroupLoadBalancingSettingObject `
+      -AdditionalLatencyInMillisecond 50 `
+      -SampleSize 4 `
+      -SuccessfulSamplesRequired 3
 
-  $loadBalancing = New-AzFrontDoorCdnOriginGroupLoadBalancingSettingObject `
-    -AdditionalLatencyInMillisecond 50 `
-    -SampleSize 4 `
-    -SuccessfulSamplesRequired 3
+    if ($HealthProbeEnabled) {
+        $originGroup = New-AzFrontDoorCdnOriginGroup `
+          -ResourceGroupName  $ResourceGroupName `
+          -ProfileName        $ProfileName `
+          -OriginGroupName    $OriginGroupName `
+          -HealthProbeSetting $healthProbe `
+          -LoadBalancingSetting $loadBalancing
+    } else {
+        $originGroup = New-AzFrontDoorCdnOriginGroup `
+          -ResourceGroupName  $ResourceGroupName `
+          -ProfileName        $ProfileName `
+          -OriginGroupName    $OriginGroupName `
+          -LoadBalancingSetting $loadBalancing
+    }
 
-  $originGroup = New-AzFrontDoorCdnOriginGroup `
-    -ResourceGroupName  $ResourceGroupName `
-    -ProfileName        $ProfileName `
-    -OriginGroupName    $OriginGroupName `
-    -LoadBalancingSetting $loadBalancing
 
-  Write-Host "Created origin group: $($originGroup.Name)"
+    Write-Host "Created origin group: $($originGroup.Name)"
 
-  $origin = New-AzFrontDoorCdnOrigin `
-    -ResourceGroupName   $ResourceGroupName `
-    -ProfileName         $ProfileName `
-    -OriginGroupName     $OriginGroupName `
-    -OriginName          $OriginName `
-    -HostName            $OriginHostName `
-    -OriginHostHeader    $OriginHostHeader `
-    -HttpPort            $OriginHttpPort `
-    -HttpsPort           $OriginHttpsPort `
-    -Priority            $OriginPriority `
-    -Weight              $OriginWeight
+    $origin = New-AzFrontDoorCdnOrigin `
+      -ResourceGroupName   $ResourceGroupName `
+      -ProfileName         $ProfileName `
+      -OriginGroupName     $OriginGroupName `
+      -OriginName          $OriginName `
+      -HostName            $OriginHostName `
+      -OriginHostHeader    $OriginHostHeader `
+      -HttpPort            $OriginHttpPort `
+      -HttpsPort           $OriginHttpsPort `
+      -Priority            $OriginPriority `
+      -Weight              $OriginWeight
 
-  Write-Host "Created origin: $($origin.Name) ($OriginHostName)"
+    Write-Host "Created origin: $($origin.Name) ($OriginHostName)"
 }
 
 # -----------------------------
