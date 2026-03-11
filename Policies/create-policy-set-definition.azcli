@@ -1,0 +1,9 @@
+$subscriptionId=$(az account show --query id --output tsv)
+
+az policy set-definition create --name EME-RequiredTags `
+  --display-name "EME-RequiredTags" `
+  --description "Enforce required tags on resources and resource groups to ensure proper governance, management, and cost tracking." `
+  --metadata "azurepolicy.metadata.json" `
+  --params "azurepolicy.parameters.json" `
+  --definitions "azurepolicy.policyDefinitions.json" `
+  --subscription $subscriptionId

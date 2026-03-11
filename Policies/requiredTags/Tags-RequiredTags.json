@@ -1,0 +1,233 @@
+{
+  "name": "Tags-RequiredTags",
+  "type": "Microsoft.Authorization/policySetDefinitions",
+  "scope": null,
+  "properties": {
+    "displayName": "Required Tags",
+    "policyType": "Custom",
+    "description": "Enforce required tags on resources and resource groups to ensure proper governance, management, and cost tracking. This initiative includes policies that require specific tags such as DataClassification, OpCo, ResourceOwner, LastTagReview, BUID, SNApplicationServiceID, InternetFacing, ExternalFQDN, and MachineName. By implementing these policies, organizations can enhance resource organization, improve security and compliance, and facilitate efficient resource management across their Azure environment.",
+    "metadata": {
+      "category": "Tags",
+      "version": "1.0.0"
+    },
+    "parameters": {
+      "effect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
+      "DataClassificationAllowedValues": {
+        "type": "Array",
+        "defaultValue": []
+      },
+      "BUIDAllowedValues": {
+        "type": "Array",
+        "defaultValue": []
+      },
+      "SNowInstanceIDResourceTypes": {
+        "type": "Array",
+        "defaultValue": []
+      },
+      "InternetFacingAllowedValues": {
+        "type": "Array",
+        "defaultValue": [
+          true,
+          false
+        ]
+      },
+      "InternetFacingResourceTypes": {
+        "type": "Array",
+        "defaultValue": []
+      },
+      "ExternalFQDNResourceTypes": {
+        "type": "Array",
+        "defaultValue": []
+      },
+      "MachineNameResourceTypes": {
+        "type": "Array",
+        "defaultValue": []
+      }
+    },
+    "policyDefinitions": [
+      {
+        "policyDefinitionReferenceId": "Inherit Environment tag from the subscription if missing",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/40df99da-1232-49b1-a39a-6da8d878f469",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "tagName": {
+            "value": "Environment"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Inherit DataClassification tag from the resource group if missing",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/ea3f2387-9b95-492a-a190-fcdc54f7b070",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "tagName": {
+            "value": "DataClassification"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require DataClassification tag on resource groups with allowed values",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-ResourceGroupsAllowedValues",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "DataClassification"
+          },
+          "tagAllowedValues": {
+            "value": "[parameters('DataClassificationAllowedValues')]"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require OpCo tag on resources",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypes",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "OpCo"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require ResourceOwner tag on resources with a like matched value",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypesLikeMatch",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "ResourceOwner"
+          },
+          "tagPattern": {
+            "value": "*@emcor.net"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require LastTagReview tag on resources with a pattern matched value",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypesPatternMatch",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "LastTagReview"
+          },
+          "tagPattern": {
+            "value": "20##-##-##"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require BUID tag on resources with allowed values",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypesAllowedValues",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "BUID"
+          },
+          "tagAllowedValues": {
+            "value": "[parameters('BUIDAllowedValues')]"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require SNowInstanceID tag on specified resource types",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypes",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "SNowInstanceID"
+          },
+          "resourceTypes": {
+            "value": "[parameters('SNowInstanceIDResourceTypes')]"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require InternetFacing tag on specified resource types with allowed values",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypesAllowedValues",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "InternetFacing"
+          },
+          "tagAllowedValues": {
+            "value": "[parameters('InternetFacingAllowedValues')]"
+          },
+          "resourceTypes": {
+            "value": "[parameters('InternetFacingResourceTypes')]"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require ExternalFQDN tag on specified resource types",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypes",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "ExternalFQDN"
+          },
+          "resourceTypes": {
+            "value": "[parameters('ExternalFQDNResourceTypes')]"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require MachineName tag on specified resource types",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypes",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "MachineName"
+          },
+          "resourceTypes": {
+            "value": "[parameters('MachineNameResourceTypes')]"
+          }
+        },
+        "groupNames": []
+      }
+    ],
+    "policyDefinitionGroups": []
+  }
+}
