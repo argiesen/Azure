@@ -1,0 +1,23 @@
+{
+    "properties": {
+        "roleName": "Run VM Command",
+        "description": "Allows running a command or script on a virtual machine.",
+        "assignableScopes": [
+            "/providers/Microsoft.Management/managementGroups/<tenant root group id>"
+        ],
+        "permissions": [
+            {
+                "actions": [
+                    "Microsoft.Compute/virtualMachines/runCommand/action",
+                    "Microsoft.Compute/virtualMachines/runCommands/read",
+                    "Microsoft.Compute/virtualMachines/runCommands/write",
+                    "Microsoft.Compute/locations/runCommands/read",
+                    "Microsoft.Compute/virtualMachines/read"
+                ],
+                "notActions": [],
+                "dataActions": [],
+                "notDataActions": []
+            }
+        ]
+    }
+}
