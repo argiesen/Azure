@@ -20,20 +20,16 @@
         "defaultValue": "Audit"
       },
       "EnvironmentAllowedValues": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "DataClassificationAllowedValues": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "BUIDAllowedValues": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "SNowInstanceIDResourceTypes": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "InternetFacingAllowedValues": {
         "type": "Array",
@@ -43,16 +39,13 @@
         ]
       },
       "InternetFacingResourceTypes": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "ExternalFQDNResourceTypes": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "MachineNameResourceTypes": {
-        "type": "Array",
-        "defaultValue": []
+        "type": "Array"
       },
       "MachineNameTagEffect": {
         "type": "String",
