@@ -16,8 +16,7 @@
         "allowedValues": [
           "Deny",
           "Audit"
-        ],
-        "defaultValue": "Audit"
+        ]
       },
       "EnvironmentAllowedValues": {
         "type": "Array"
