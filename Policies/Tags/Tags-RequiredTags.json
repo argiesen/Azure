@@ -53,6 +53,14 @@
       "MachineNameResourceTypes": {
         "type": "Array",
         "defaultValue": []
+      },
+      "MachineNameTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
       }
     },
     "policyDefinitions": [
@@ -243,7 +251,7 @@
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('MachineNameTagEffect')]"
           },
           "tagName": {
             "value": "MachineName"
