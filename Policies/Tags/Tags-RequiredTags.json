@@ -19,6 +19,10 @@
         ],
         "defaultValue": "Audit"
       },
+      "EnvironmentAllowedValues": {
+        "type": "Array",
+        "defaultValue": []
+      },
       "DataClassificationAllowedValues": {
         "type": "Array",
         "defaultValue": []
@@ -59,6 +63,23 @@
         "parameters": {
           "tagName": {
             "value": "Environment"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require Environment tag on resource groups with allowed values",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-ResourceGroupsAllowedValues",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effect')]"
+          },
+          "tagName": {
+            "value": "Environment"
+          },
+          "tagAllowedValues": {
+            "value": "[parameters('EnvironmentAllowedValues')]"
           }
         },
         "groupNames": []
@@ -194,8 +215,8 @@
         "groupNames": []
       },
       {
-        "policyDefinitionReferenceId": "Require ExternalFQDN tag on specified resource types",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypes",
+        "policyDefinitionReferenceId": "Require ExternalFQDN tag on specified resource types when InternetFacing tag is true",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypesDependentTagValue",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
@@ -206,6 +227,12 @@
           },
           "resourceTypes": {
             "value": "[parameters('ExternalFQDNResourceTypes')]"
+          },
+          "dependentTagName": {
+            "value": "InternetFacing"
+          },
+          "dependentTagValue": {
+            "value": "true"
           }
         },
         "groupNames": []
