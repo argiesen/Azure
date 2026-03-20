@@ -1,11 +1,11 @@
 {
-  "name": "Tags-AllResourceTypesPatternMatch",
+  "name": "Audit-Tags-AllResourceTypes",
   "type": "Microsoft.Authorization/policyDefinitions",
   "properties": {
-    "displayName": "Require a tag on resources with a pattern matched value",
+    "displayName": "Require a tag on resources",
     "policyType": "Custom",
     "mode": "Indexed",
-    "description": "Enforces existence of a tag with a value matching a provided pattern. Does not apply to resource groups.",
+    "description": "Enforces existence of a tag. Does not apply to resource groups.",
     "metadata": {
       "category": "Tags",
       "version": "1.0.0"
@@ -16,13 +16,6 @@
         "metadata": {
           "displayName": "Tag Name",
           "description": "Name of the tag, such as 'environment'"
-        }
-      },
-      "tagPattern": {
-        "type": "String",
-        "metadata": {
-          "displayName": "Tag pattern match",
-          "description": "Pattern matching allowed format (# = digit, ? = letter, . = any character)"
         }
       },
       "effect": {
@@ -40,16 +33,8 @@
     },
     "policyRule": {
       "if": {
-        "anyOf": [
-          {
-            "field": "[concat('tags[', parameters('tagName'), ']')]",
-            "exists": "false"
-          },
-          {
-            "field": "[concat('tags[', parameters('tagName'), ']')]",
-            "notMatch": "[parameters('tagPattern')]"
-          }
-        ]
+        "field": "[concat('tags[', parameters('tagName'), ']')]",
+        "exists": "false"
       },
       "then": {
         "effect": "[parameters('effect')]"

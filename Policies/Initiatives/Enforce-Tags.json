@@ -1,5 +1,5 @@
 {
-  "name": "Tags-RequiredTags",
+  "name": "Enforce-Tags",
   "type": "Microsoft.Authorization/policySetDefinitions",
   "scope": null,
   "properties": {
@@ -11,24 +11,84 @@
       "version": "1.0.0"
     },
     "parameters": {
-      "effect": {
+      "EnvironmentAllowedValues": {
+        "type": "Array"
+      },
+      "EnvironmentTagEffect": {
         "type": "String",
         "allowedValues": [
           "Deny",
           "Audit"
-        ]
+        ],
+        "defaultValue": "Audit"
       },
-      "EnvironmentAllowedValues": {
+      "SegmentAllowedValues": {
         "type": "Array"
+      },
+      "SegmentTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
       },
       "DataClassificationAllowedValues": {
         "type": "Array"
       },
+      "DataClassificationTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
       "BUIDAllowedValues": {
         "type": "Array"
       },
+      "BUIDTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
+      "OpCoTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
+      "ResourceOwnerTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
+      "LastTagReviewTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
       "SNowInstanceIDResourceTypes": {
         "type": "Array"
+      },
+      "SNowInstanceIDTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
       },
       "InternetFacingAllowedValues": {
         "type": "Array",
@@ -40,8 +100,24 @@
       "InternetFacingResourceTypes": {
         "type": "Array"
       },
+      "InternetFacingTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
+      },
       "ExternalFQDNResourceTypes": {
         "type": "Array"
+      },
+      "ExternalFQDNTagEffect": {
+        "type": "String",
+        "allowedValues": [
+          "Deny",
+          "Audit"
+        ],
+        "defaultValue": "Audit"
       },
       "MachineNameResourceTypes": {
         "type": "Array"
@@ -69,17 +145,45 @@
       },
       {
         "policyDefinitionReferenceId": "Require Environment tag on resource groups with allowed values",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-ResourceGroupsAllowedValues",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-ResourceGroupsAllowedValues",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('EnvironmentTagEffect')]"
           },
           "tagName": {
             "value": "Environment"
           },
           "tagAllowedValues": {
             "value": "[parameters('EnvironmentAllowedValues')]"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Inherit Segment tag from the subscription if missing",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/40df99da-1232-49b1-a39a-6da8d878f469",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "tagName": {
+            "value": "Segment"
+          }
+        },
+        "groupNames": []
+      },
+      {
+        "policyDefinitionReferenceId": "Require Segment tag on resource groups with allowed values",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-ResourceGroupsAllowedValues",
+        "definitionVersion": "1.0.*",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('SegmentTagEffect')]"
+          },
+          "tagName": {
+            "value": "Segment"
+          },
+          "tagAllowedValues": {
+            "value": "[parameters('SegmentAllowedValues')]"
           }
         },
         "groupNames": []
@@ -97,11 +201,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require DataClassification tag on resource groups with allowed values",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-ResourceGroupsAllowedValues",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-ResourceGroupsAllowedValues",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('DataClassificationTagEffect')]"
           },
           "tagName": {
             "value": "DataClassification"
@@ -114,11 +218,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require OpCo tag on resources",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypes",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-AllResourceTypes",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('OpCoTagEffect')]"
           },
           "tagName": {
             "value": "OpCo"
@@ -128,11 +232,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require ResourceOwner tag on resources with a like matched value",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypesLikeMatch",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-AllResourceTypesLikeMatch",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('ResourceOwnerTagEffect')]"
           },
           "tagName": {
             "value": "ResourceOwner"
@@ -145,11 +249,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require LastTagReview tag on resources with a pattern matched value",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypesPatternMatch",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-AllResourceTypesPatternMatch",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('LastTagReviewTagEffect')]"
           },
           "tagName": {
             "value": "LastTagReview"
@@ -162,11 +266,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require BUID tag on resources with allowed values",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-AllResourceTypesAllowedValues",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-AllResourceTypesAllowedValues",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('BUIDTagEffect')]"
           },
           "tagName": {
             "value": "BUID"
@@ -179,11 +283,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require SNowInstanceID tag on specified resource types",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypes",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-SpecifiedResourceTypes",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('SNowInstanceIDTagEffect')]"
           },
           "tagName": {
             "value": "SNowInstanceID"
@@ -196,11 +300,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require InternetFacing tag on specified resource types with allowed values",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypesAllowedValues",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-SpecifiedResourceTypesAllowedValues",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('InternetFacingTagEffect')]"
           },
           "tagName": {
             "value": "InternetFacing"
@@ -216,11 +320,11 @@
       },
       {
         "policyDefinitionReferenceId": "Require ExternalFQDN tag on specified resource types when InternetFacing tag is true",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypesDependentTagValue",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-SpecifiedResourceTypesDependentTagValue",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {
-            "value": "[parameters('effect')]"
+            "value": "[parameters('ExternalFQDNTagEffect')]"
           },
           "tagName": {
             "value": "ExternalFQDN"
@@ -239,7 +343,7 @@
       },
       {
         "policyDefinitionReferenceId": "Require MachineName tag on specified resource types",
-        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Tags-SpecifiedResourceTypes",
+        "policyDefinitionId": "/providers/microsoft.management/managementgroups/contoso/providers/microsoft.authorization/policydefinitions/Audit-Tags-SpecifiedResourceTypes",
         "definitionVersion": "1.0.*",
         "parameters": {
           "effect": {

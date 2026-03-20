@@ -1,0 +1,278 @@
+{
+  "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/contoso/providers/Microsoft.Authorization/policySetDefinitions/Enforce-Tags",
+  "type": "Microsoft.Authorization/policyAssignments",
+  "definitionVersion": "1.*.*",
+  "displayName": "Required Tags",
+  "enforcementMode": "Default",
+  "name": "Enforce-Tags",
+  "nonComplianceMessages": [
+    {
+      "message": "The resources being deployed are required to have specific tags and may require a value included in an allow list or match a specific pattern."
+    },
+    {
+      "message": "A resource group must have the Environment tag with a value included in the allow list.",
+      "policyDefinitionReferenceId": "Inherit Environment tag from the subscription if missing"
+    },
+    {
+      "message": "A resource group must have the Environment tag with a value included in the allow list.",
+      "policyDefinitionReferenceId": "Require Environment tag on resource groups with allowed values"
+    },
+    {
+      "message": "A resource group must have the DataClassification tag with a value included in the allow list.",
+      "policyDefinitionReferenceId": "Inherit DataClassification tag from the resource group if missing"
+    },
+    {
+      "message": "A resource group must have the DataClassification tag with a value included in the allow list.",
+      "policyDefinitionReferenceId": "Require DataClassification tag on resource groups with allowed values"
+    },
+    {
+      "message": "All resources must have the OpCo tag.",
+      "policyDefinitionReferenceId": "Require OpCo tag on resources"
+    },
+    {
+      "message": "All resources must have the ResourceOwner tag with a value matching *@emcor.net.",
+      "policyDefinitionReferenceId": "Require ResourceOwner tag on resources with a like matched value"
+    },
+    {
+      "message": "All resources must have the LastTagReview tag with a value matching YYYY-MM-DD.",
+      "policyDefinitionReferenceId": "Require LastTagReview tag on resources with a pattern matched value"
+    },
+    {
+      "message": "All resources must have the BUID tag with the 3-digit ID as the value.",
+      "policyDefinitionReferenceId": "Require BUID tag on resources with allowed values"
+    },
+    {
+      "message": "The specified resource type must have the SNowInstanceID tag with a value included in the allow list.",
+      "policyDefinitionReferenceId": "Require SNowInstanceID tag on specified resource types"
+    },
+    {
+      "message": "The specified resource type must have the InternetFacing tag with a true/false value.",
+      "policyDefinitionReferenceId": "Require InternetFacing tag on specified resource types with allowed values"
+    },
+    {
+      "message": "The specified resource type must have the ExternalFQDN tag when InternetFacing is true.",
+      "policyDefinitionReferenceId": "Require ExternalFQDN tag on specified resource types when InternetFacing tag is true"
+    },
+    {
+      "message": "The specified resource type must have the MachineName tag that includes the NetBIOS name.",
+      "policyDefinitionReferenceId": "Require MachineName tag on specified resource types"
+    }
+  ],
+  "notScopes": [],
+  "overrides": [],
+  "parameters": {
+    "BUIDAllowedValues": {
+      "value": [
+        "250",
+        "260",
+        "302",
+        "303",
+        "314",
+        "315",
+        "316",
+        "317",
+        "324",
+        "325",
+        "326",
+        "330",
+        "332",
+        "336",
+        "337",
+        "339",
+        "341",
+        "343",
+        "345",
+        "348",
+        "351",
+        "352",
+        "354",
+        "355",
+        "356",
+        "357",
+        "358",
+        "359",
+        "361",
+        "363",
+        "368",
+        "369",
+        "370",
+        "372",
+        "376",
+        "377",
+        "380",
+        "400",
+        "291",
+        "292",
+        "293",
+        "295",
+        "296",
+        "297",
+        "298",
+        "405",
+        "415",
+        "421",
+        "422",
+        "435",
+        "436",
+        "437",
+        "440",
+        "500",
+        "512",
+        "515",
+        "517",
+        "540",
+        "541",
+        "542",
+        "670",
+        "671",
+        "672",
+        "680",
+        "683",
+        "684",
+        "750",
+        "751",
+        "753",
+        "754",
+        "755",
+        "757",
+        "759",
+        "760",
+        "765",
+        "767",
+        "770",
+        "774",
+        "777",
+        "778",
+        "782",
+        "783",
+        "784",
+        "785",
+        "790",
+        "793",
+        "794",
+        "795",
+        "796",
+        "797",
+        "798",
+        "799",
+        "800",
+        "801",
+        "802",
+        "803",
+        "804",
+        "805",
+        "806",
+        "813",
+        "814",
+        "816",
+        "817",
+        "818",
+        "819",
+        "820",
+        "821",
+        "822",
+        "824",
+        "826",
+        "827"
+      ]
+    },
+    "BUIDTagEffect": {
+      "value": "Audit"
+    },
+    "OpCoTagEffect": {
+      "value": "Audit"
+    },
+    "ResourceOwnerTagEffect": {
+      "value": "Audit"
+    },
+    "LastTagReviewTagEffect": {
+      "value": "Audit"
+    },
+    "DataClassificationAllowedValues": {
+      "value": [
+        "General",
+        "Confidential",
+        "ConfidentialPII",
+        "PrivilegedAndConfidential"
+      ]
+    },
+    "DataClassificationTagEffect": {
+      "value": "Audit"
+    },
+    "EnvironmentAllowedValues": {
+      "value": [
+        "Dev",
+        "Prod",
+        "Stage",
+        "Test"
+      ]
+    },
+    "EnvironmentTagEffect": {
+      "value": "Audit"
+    },
+    "SegmentAllowedValues": {
+      "value": [
+        "ECS",
+        "EBS",
+        "EIS",
+        "EGS",
+        "EFS"
+      ]
+    },
+    "SegmentTagEffect": {
+      "value": "Audit"
+    },
+    "ExternalFQDNResourceTypes": {
+      "value": [
+        "Microsoft.Compute/VirtualMachines",
+        "Microsoft.Sql/servers/databases",
+        "Microsoft.Sql/managedInstances/databases"
+      ]
+    },
+    "ExternalFQDNTagEffect": {
+      "value": "Audit"
+    },
+    "InternetFacingResourceTypes": {
+      "value": [
+        "Microsoft.Compute/VirtualMachines",
+        "Microsoft.Storage/StorageAccounts",
+        "Microsoft.Web/Sites",
+        "Microsoft.Web/ContainerApps",
+        "Microsoft.App/ContainerApps",
+        "Microsoft.ContainerService/ContainerServices",
+        "Microsoft.Logic/Workflows",
+        "Microsoft.KeyVault/Vaults",
+        "Microsoft.RecoveryServices/Vaults",
+        "Microsoft.Sql/servers/databases",
+        "Microsoft.Sql/managedInstances/databases"
+      ]
+    },
+    "InternetFacingTagEffect": {
+      "value": "Audit"
+    },
+    "MachineNameResourceTypes": {
+      "value": [
+        "Microsoft.Compute/VirtualMachines"
+      ]
+    },
+    "MachineNameTagEffect": {
+      "value": "Audit"
+    },
+    "SNowInstanceIDResourceTypes": {
+      "value": [
+        "Microsoft.Compute/VirtualMachines",
+        "Microsoft.Storage/StorageAccounts",
+        "Microsoft.Web/Sites",
+        "Microsoft.Web/ContainerApps",
+        "Microsoft.App/ContainerApps",
+        "Microsoft.ContainerService/ContainerServices",
+        "Microsoft.Logic/Workflows",
+        "Microsoft.Sql/servers/databases",
+        "Microsoft.Sql/managedInstances/databases"
+      ]
+    },
+    "SNowInstanceIDTagEffect": {
+      "value": "Audit"
+    }
+  }
+}

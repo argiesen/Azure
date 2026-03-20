@@ -1,8 +1,8 @@
 {
-  "name": "Tags-AllResourceTypes",
+  "name": "Audit-Tags-AllResourceTypesAllowedValues",
   "type": "Microsoft.Authorization/policyDefinitions",
   "properties": {
-    "displayName": "Require a tag on resources",
+    "displayName": "Require a tag on resources with allowed values",
     "policyType": "Custom",
     "mode": "Indexed",
     "description": "Enforces existence of a tag. Does not apply to resource groups.",
@@ -16,6 +16,13 @@
         "metadata": {
           "displayName": "Tag Name",
           "description": "Name of the tag, such as 'environment'"
+        }
+      },
+      "tagAllowedValues": {
+        "type": "Array",
+        "metadata": {
+          "displayName": "Tag allowed values",
+          "description": "List of allowed options"
         }
       },
       "effect": {
@@ -33,8 +40,16 @@
     },
     "policyRule": {
       "if": {
-        "field": "[concat('tags[', parameters('tagName'), ']')]",
-        "exists": "false"
+        "anyOf": [
+          {
+            "field": "[concat('tags[', parameters('tagName'), ']')]",
+            "exists": "false"
+          },
+          {
+            "field": "[concat('tags[', parameters('tagName'), ']')]",
+            "notIn": "[parameters('tagAllowedValues')]"
+          }
+        ]
       },
       "then": {
         "effect": "[parameters('effect')]"

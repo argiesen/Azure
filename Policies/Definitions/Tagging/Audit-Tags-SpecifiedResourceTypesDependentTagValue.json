@@ -1,11 +1,11 @@
 {
-  "name": "Tags-SpecifiedResourceTypes",
+  "name": "Audit-Tags-SpecifiedResourceTypesDependentTagValue",
   "type": "Microsoft.Authorization/policyDefinitions",
   "properties": {
-    "displayName": "Require a tag on specified resource types",
+    "displayName": "Require a tag on specified resource types when a dependent tag has a specific value",
     "policyType": "Custom",
     "mode": "Indexed",
-    "description": "Enforces existence of a tag on specified resource types. Does not apply to resource groups.",
+    "description": "Enforces existence of a tag on specified resource types when a dependent tag has a specific value. Does not apply to resource groups.",
     "metadata": {
       "category": "Tags",
       "version": "1.0.0"
@@ -23,6 +23,20 @@
         "metadata": {
           "displayName": "Resource Types",
           "description": "Resource types to apply tag to (eg. Microsoft.Compute/virtualMachine)"
+        }
+      },
+      "dependentTagName": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Dependent Tag Name",
+          "description": "Name of the dependent tag, such as 'environment'"
+        }
+      },
+      "dependentTagValue": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Dependent Tag Value",
+          "description": "Value of the dependent tag, such as 'production'"
         }
       },
       "effect": {
@@ -48,6 +62,10 @@
           {
             "field": "[concat('tags[', parameters('tagName'), ']')]",
             "exists": "false"
+          },
+          {
+            "field": "[concat('tags[', parameters('dependentTagName'), ']')]",
+            "equals": "[parameters('dependentTagValue')]"
           }
         ]
       },

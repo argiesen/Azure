@@ -1,11 +1,11 @@
 {
-  "name": "Tags-AllResourceTypesAllowedValues",
+  "name": "Audit-Tags-ResourceGroupsAllowedValues",
   "type": "Microsoft.Authorization/policyDefinitions",
   "properties": {
-    "displayName": "Require a tag on resources with allowed values",
+    "displayName": "Require a tag on resource groups with allowed values",
     "policyType": "Custom",
-    "mode": "Indexed",
-    "description": "Enforces existence of a tag. Does not apply to resource groups.",
+    "mode": "All",
+    "description": "Enforces existence of a tag on resource groups with allowed values.",
     "metadata": {
       "category": "Tags",
       "version": "1.0.0"
@@ -40,14 +40,22 @@
     },
     "policyRule": {
       "if": {
-        "anyOf": [
+        "allOf": [
           {
-            "field": "[concat('tags[', parameters('tagName'), ']')]",
-            "exists": "false"
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions/resourceGroups"
           },
           {
-            "field": "[concat('tags[', parameters('tagName'), ']')]",
-            "notIn": "[parameters('tagAllowedValues')]"
+            "anyOf": [
+              {
+                "field": "[concat('tags[', parameters('tagName'), ']')]",
+                "exists": "false"
+              },
+              {
+                "field": "[concat('tags[', parameters('tagName'), ']')]",
+                "notIn": "[parameters('tagAllowedValues')]"
+              }
+            ]
           }
         ]
       },
