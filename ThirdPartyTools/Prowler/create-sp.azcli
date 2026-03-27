@@ -1,0 +1,37 @@
+# Create a service principal for Prowler with the necessary permissions to access Azure resources.
+$scope = "/subscriptions/<subscription-id> | /providers/Microsoft.Management/managementGroups/<management-group-id>" # USE YOUR SUBSCRIPTION ID OR MANAGEMENT GROUP ID
+
+# https://docs.prowler.com/user-guide/providers/azure/create-prowler-service-principal
+$app = az ad sp create-for-rbac --name "ProwlerApp" | ConvertFrom-Json
+
+# https://docs.prowler.com/user-guide/providers/azure/authentication#required-permissions
+az ad app permission add --id $app.appId `
+    --api 00000003-0000-0000-c000-000000000000 `
+    --api-permissions `
+    7ab1d382-f21e-4acd-a863-ba3e13f7da61=Role `
+    246dd0d5-5bd0-4def-940b-0421030a5b68=Role `
+    b0afded3-3588-46d8-8b3d-9842eff778da=Role
+
+az ad app permission grant --id $app.appId --api 00000003-0000-0000-c000-000000000000
+
+az role assignment create --role "Reader" `
+    --assignee $app.appId `
+    --scope $scope
+
+# https://github.com/prowler-cloud/prowler/blob/master/permissions/prowler-azure-custom-role.json
+az role definition create --role-definition @('{
+        "Name": "ProwlerRole",
+        "IsCustom": true,
+        "Description": "Role used for checks that require read-only access to Azure resources and are not covered by the Reader role.",
+        "AssignableScopes": [
+            "<scope>"
+        ],
+        "Actions": [
+            "Microsoft.Web/sites/host/listkeys/action",
+            "Microsoft.Web/sites/config/list/Action"
+        ]
+    }').Replace("<scope>", $scope)
+
+az role assignment create --role "ProwlerRole" `
+    --assignee $app.appId `
+    --scope $scope
