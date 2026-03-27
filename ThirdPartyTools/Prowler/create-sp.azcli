@@ -1,5 +1,6 @@
 # Create a service principal for Prowler with the necessary permissions to access Azure resources.
 $scope = "/subscriptions/<subscription-id> | /providers/Microsoft.Management/managementGroups/<management-group-id>" # USE YOUR SUBSCRIPTION ID OR MANAGEMENT GROUP ID
+$scope = "/providers/Microsoft.Management/managementGroups/e0a12e5f-4210-473e-a231-1320219d1e52" # USE YOUR SUBSCRIPTION ID OR MANAGEMENT GROUP ID
 
 # https://docs.prowler.com/user-guide/providers/azure/create-prowler-service-principal
 $app = az ad sp create-for-rbac --name "ProwlerApp" | ConvertFrom-Json
@@ -12,7 +13,9 @@ az ad app permission add --id $app.appId `
     246dd0d5-5bd0-4def-940b-0421030a5b68=Role `
     b0afded3-3588-46d8-8b3d-9842eff778da=Role
 
-az ad app permission grant --id $app.appId --api 00000003-0000-0000-c000-000000000000
+Start-Sleep -Seconds 5 # Wait for permissions to propagate
+
+az ad app permission admin-consent --id $app.appId
 
 az role assignment create --role "Reader" `
     --assignee $app.appId `
@@ -35,3 +38,5 @@ az role definition create --role-definition @('{
 az role assignment create --role "ProwlerRole" `
     --assignee $app.appId `
     --scope $scope
+
+$app | Format-List
