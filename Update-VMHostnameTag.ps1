@@ -32,7 +32,7 @@ param (
 Connect-AzAccount -Identity | Out-Null
 
 # Get all subscriptions the identity has access to
-$subscriptions = Get-AzSubscription
+$subscriptions = Get-AzSubscription | Where-Object { $_.State -eq "Enabled" }
 
 foreach ($sub in $subscriptions) {
     Write-Output "Switching to subscription: $($sub.Name)"
