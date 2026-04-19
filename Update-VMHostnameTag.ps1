@@ -42,7 +42,7 @@ foreach ($sub in $subscriptions) {
         $vms = Get-AzVM -Status
         Write-Output "Found $($vms.Count) VMs in subscription $($sub.Name)"
     } catch {
-        Write-Warning "Unable to get VMs for subscription $($sub.Name): $_"
+        Write-Warning "[WARNING] Unable to get VMs for subscription $($sub.Name): $_"
         continue
     }
 
@@ -54,7 +54,16 @@ foreach ($sub in $subscriptions) {
 
         try {
             if ($vm.PowerState -ne "VM running") {
-                Write-Warning "[$vmName] VM is not running. Skipping."
+                Write-Warning "[$vmName] [WARNING] VM is not running. Skipping."
+                continue
+            }
+
+            $vmAgentStatus = Get-AzVM -ResourceGroupName $resourceGroup -Name $vmName -Status | Select-Object -ExpandProperty VMAgent | Select-Object -ExpandProperty Statuses
+
+            if ($vmAgentStatus.DisplayStatus -eq "Ready") {
+                Write-Output "[$vmName] VM Agent is ready."
+            } else {
+                Write-Warning "[$vmName] [WARNING] VM Agent is not ready. Skipping."
                 continue
             }
 
@@ -78,15 +87,18 @@ foreach ($sub in $subscriptions) {
                 $tags[$TagName] = $hostname
 
                 # Update tag
-                Update-AzTag -ResourceId $vm.Id -Tag $tags -Operation Merge | Out-Null
-
-                Write-Output "[$vmName] Tagged with Hostname: $hostname"
+                $Error.Clear()
+                Update-AzTag -ResourceId $vm.Id -Tag $tags -Operation Merge -ErrorAction SilentlyContinue | Out-Null
+                if ($Error) {
+                    Write-Warning "[$vmName] [ERROR] Failed to update tag: $($Error[0].Exception.Message)"
+                } else {
+                    Write-Output "[$vmName] Tagged with Hostname: $hostname"
+                }
             } else {
-                Write-Warning "[$vmName] Hostname was empty"
+                Write-Warning "[$vmName] [WARNING] Hostname was empty"
             }
-
         } catch {
-            Write-Warning "[$vmName] ERROR: $_"
+            Write-Warning "[$vmName] [ERROR] $_"
         }
     }
 }
